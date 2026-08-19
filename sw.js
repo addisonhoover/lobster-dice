@@ -1,5 +1,5 @@
 /* Lobster Dice service worker — offline app shell (cache-first) */
-const CACHE = 'lobster-dice-v6';
+const CACHE = 'lobster-dice-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -27,6 +27,7 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== self.location.origin) return; // never cache sync/API calls
   const isDoc = e.request.mode === 'navigate' || e.request.destination === 'document';
   if (isDoc) {
     // network-first for the app shell so updates land immediately; cache is the offline fallback

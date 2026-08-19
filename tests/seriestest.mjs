@@ -17,7 +17,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 ok('splash overlay present on load', !!q('#splash') && q('.sp-title').textContent.includes('Lobster'));
 ok('splash: lobster art + lobster-face die', !!q('.sp-lob') && !!q('#lobArt') && !!q('.sp-d2 use'));
 ok('new tagline', q('.top .sub').textContent === 'scorepad + stakes tracker');
-ok('footer credit v4.1', document.getElementById('foot').textContent.includes('v4.1') && document.getElementById('foot').textContent.includes('addison hoover'));
+ok('footer credit v4.1', document.getElementById('foot').textContent.includes('v4.2') && document.getElementById('foot').textContent.includes('addison hoover'));
 await sleep(2700);
 ok('splash auto-dismisses ~2s', !q('#splash'));
 
