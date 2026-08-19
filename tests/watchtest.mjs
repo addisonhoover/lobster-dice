@@ -69,6 +69,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   ok('watcher sees who is rolling + turn total', t.includes('Kelsey is rolling') && t.includes('+18'));
   ok('fire + zero-warning visible to watchers', !!document.querySelector('.score.fire') && !!document.querySelector('.warn0'));
   ok('no input controls for watchers', !document.querySelector('#bank') && !document.querySelector('.rc'));
+  ok('live view has a way home', !!document.querySelector('#watchback'));
 }
 
 // ---------- side 3: a watcher after the game ends ----------
@@ -112,6 +113,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   });
   await sleep(100);
   ok('empty crew shows waiting screen', dom.window.document.body.textContent.includes('Waiting for the table'));
+  ok('waiting screen has a way home', !!dom.window.document.querySelector('#watchback'));
 }
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');

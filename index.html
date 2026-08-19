@@ -442,10 +442,14 @@ async function fetchWatch(){
 function startWatch(){ foot.textContent='📺 live scoreboard · crew '+WATCH; fetchWatch(); setInterval(fetchWatch,4000); }
 function renderWatch(){
   const st=watchData&&watchData.state;
+  const backBtn=`<button class="btn ghost sm" id="watchback" style="margin-top:4px">← Back to the app</button>`;
+  const wireBack=()=>{ const b=document.getElementById('watchback'); if(b) b.onclick=()=>{ location.href=location.pathname; }; };
   if(!st){
     app.innerHTML=`<div class="card" style="text-align:center"><div class="burst">📺</div>
       <h2 style="font-size:20px">Waiting for the table…</h2>
-      <p style="color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 0">Crew <b style="color:#fff">${esc(WATCH||'')}</b> isn’t broadcasting yet.<br>This page updates by itself — leave it open.</p></div>`;
+      <p style="color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 0">Crew <b style="color:#fff">${esc(WATCH||'')}</b> isn’t broadcasting yet.<br>This page updates by itself — leave it open.</p></div>
+      ${backBtn}`;
+    wireBack();
     return;
   }
   const lead=Math.max(...st.players.map(p=>p.banked));
@@ -479,7 +483,9 @@ function renderWatch(){
   app.innerHTML=`${banner}
     <div class="card"><div class="label">📺 Live · crew ${esc(WATCH)}<span style="font-weight:700;letter-spacing:0;text-transform:none;color:#6f83a6">updated ${ago}s ago</span></div><div class="sb">${rows}</div></div>
     ${turnHtml}${endHtml}
-    <div class="hint">Read-only live scoreboard — refreshes itself, no app needed. 🦞</div>`;
+    <div class="hint">Read-only live scoreboard — refreshes itself, no app needed. 🦞</div>
+    ${backBtn}`;
+  wireBack();
 }
 
 /* running money ledger across consecutive games with the SAME crew */
