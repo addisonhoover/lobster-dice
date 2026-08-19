@@ -86,13 +86,15 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     }
   };
   const oldGame = { stake: 1, played_at: new Date().toISOString(), players: endedRow.state.players };
+  const staleGame = { stake: 1, played_at: new Date(Date.now() - 3 * 86400e3).toISOString(),
+    players: [{ name: 'MarchGuy', banked: 101 }, { name: 'Forgotten', banked: 20 }] };
   const dom = new JSDOM(html, {
     runScripts: 'dangerously', url: 'http://localhost:8321/?watch=CLAW',
     beforeParse(window) {
       window.fetch = async (url) => {
         const u = String(url);
         if (u.includes('/rest/v1/live')) return { ok: true, status: 200, json: async () => [endedRow] };
-        if (u.includes('/rest/v1/games')) return { ok: true, status: 200, json: async () => [oldGame] };
+        if (u.includes('/rest/v1/games')) return { ok: true, status: 200, json: async () => [oldGame, staleGame] };
         return { ok: true, status: 200, json: async () => [] };
       };
     }
@@ -102,7 +104,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const t = document.body.textContent;
   ok('watcher sees the winner', t.includes('Addison wins!'));
   ok('watcher sees payouts incl. zero doubler', t.includes('Settle up') && t.includes('ZERO DOUBLER') && t.includes('$224'));
-  ok('watcher sees all-time crew ledger', t.includes('All-time crew ledger'));
+  ok('watcher sees tonight ledger', t.includes('Tonight') && t.includes('1 game'));
+  ok('stale games excluded from tonight ledger', !t.includes('MarchGuy'));
 }
 
 // ---------- waiting state ----------

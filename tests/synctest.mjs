@@ -17,6 +17,13 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ---- mock the network ----
 const calls = [];
+const ancientGame = {
+  id: 'aaaaaaaa-0000-4000-8000-00000000000a',
+  played_at: new Date(Date.now() - 3 * 86400e3).toISOString(),
+  stake: 1,
+  players: [{ name: 'MarchGuy', banked: 101, busts: 0, dubs: 0, biggest: 50, log: [] },
+            { name: 'Forgotten', banked: 20, busts: 0, dubs: 0, biggest: 20, log: [] }]
+};
 const cloudGame = {
   id: 'cccccccc-0000-4000-8000-000000000001',
   played_at: new Date().toISOString(),
@@ -32,7 +39,7 @@ window.fetch = async (url, opts = {}) => {
   if (u.includes('/rest/v1/tables') && opts.method === 'POST') return res(201, []);
   if (u.includes('/rest/v1/tables')) return res(200, [{ code: 'CLAW' }]);
   if (u.includes('/rest/v1/games') && opts.method === 'POST') return res(201, []);
-  if (u.includes('/rest/v1/games')) return res(200, [cloudGame]);
+  if (u.includes('/rest/v1/games')) return res(200, [cloudGame, ancientGame]);
   return res(404, {});
 };
 window.confirm = () => true;
@@ -73,9 +80,10 @@ click(q('#histBtn'));
 await sleep(60);
 const t = document.body.textContent;
 ok('cloud game appears in merged history', t.includes('Remote'));
-ok('all-time crew ledger shown', t.includes('All-time crew ledger'));
-ok('ledger nets include remote players', t.includes('Pal'));
-ok('local + cloud = 2 games listed', document.querySelectorAll('.histrow').length === 2);
+ok('tonight ledger shown', t.includes('Tonight'));
+ok('ledger nets include tonight remote players', t.includes('Pal'));
+ok('ancient game excluded from tonight ledger but kept in history', !t.split('Tonight')[1].split('game')[0].includes('MarchGuy') && t.includes('MarchGuy'));
+ok('local + cloud = 3 games listed', document.querySelectorAll('.histrow').length === 3);
 
 // ---- cloud game detail opens ----
 click(document.querySelectorAll('.histrow')[0]);

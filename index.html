@@ -298,6 +298,7 @@
 <script>
 /* ============================ CONSTANTS ============================ */
 const GATE=21, NINE69=69, WIN=101, FIRE=75, STORE='lobsterDice.v2';
+const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survives crossing midnight)
 const STAKES=[0.25,0.5,1,2,5,10,100,1000];
 
 /* ============================ STATE ============================ */
@@ -471,14 +472,16 @@ function renderWatch(){
     endHtml=`<div class="card" style="text-align:center"><div class="burst">🏆</div><h2 style="font-size:21px">${tie?'It’s a tie!':esc(winner.name)+' wins!'} · ${winTotal}</h2></div>
       <div class="card"><div class="label">💰 Settle up — $${fmtStake(Number(st.stake))}/point</div>
       ${tie?'<p class="hint">Tie — house call.</p>':pr.map(r=>`<div class="ledger ${r.zero?'z':''}"><div class="txt">${esc(r.from)} → ${esc(r.to)}${r.zero?'<div class="zbadge">💥 ZERO DOUBLER</div>':''}</div><div class="amt">$${money(r.amount)}</div></div>`).join('')}</div>`;
-    if(watchGames&&watchGames.length){
+    const tonight=(watchGames||[]).filter(g=>Date.parse(g.played_at)>=Date.now()-TONIGHT_MS);
+    if(tonight.length){
       const nets={};
-      watchGames.forEach(g=>{ const {tie:t2,rows:r2}=payoutsFor(g.players,Number(g.stake)); if(!t2) r2.forEach(r=>{ nets[r.from]=(nets[r.from]||0)-r.amount; nets[r.to]=(nets[r.to]||0)+r.amount; }); });
+      tonight.forEach(g=>{ const {tie:t2,rows:r2}=payoutsFor(g.players,Number(g.stake)); if(!t2) r2.forEach(r=>{ nets[r.from]=(nets[r.from]||0)-r.amount; nets[r.to]=(nets[r.to]||0)+r.amount; }); });
       const bal=Object.entries(nets).sort((a,b)=>b[1]-a[1]).map(([n,v])=>
         `<div class="liab"><span>${esc(n)}</span><b style="color:${v>0.005?'var(--good)':v<-0.005?'#ffb3ab':'var(--muted)'}">${v>0.005?'+':v<-0.005?'−':''}$${money(Math.abs(v)<0.005?0:Math.abs(v))}</b></div>`).join('');
       const tr=settleNets(nets);
-      endHtml+=`<div class="card"><div class="label">📊 All-time crew ledger · ${watchGames.length} game${watchGames.length!==1?'s':''}</div>${bal}
-        ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}</div>`;
+      endHtml+=`<div class="card"><div class="label">💰 Tonight’s ledger · ${tonight.length} game${tonight.length!==1?'s':''}</div>${bal}
+        ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}
+        <div class="cb-hint">One payment each settles the whole night.</div></div>`;
     }
   }
   app.innerHTML=`${banner}
@@ -536,7 +539,7 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.3 · app design by addison hoover';
+  foot.textContent='v4.4 · app design by addison hoover';
   app.innerHTML=`
     <div class="card">
       <div class="label">Players <span style="color:#6f83a6;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
@@ -864,14 +867,16 @@ function renderModal(){
            <div class="cb-hint" id="crewmsg" style="margin-top:6px;color:var(--warn)"></div>
          </div>`;
     let crewLedger='';
-    if(c&&merged.length){
+    const tonight=c?merged.filter(g=>g.ts>=Date.now()-TONIGHT_MS):[];
+    if(tonight.length){
       const nets={};
-      merged.forEach(g=>{ const {tie,rows}=payoutsFor(g.players,g.stake); if(!tie) rows.forEach(r=>{ nets[r.from]=(nets[r.from]||0)-r.amount; nets[r.to]=(nets[r.to]||0)+r.amount; }); });
+      tonight.forEach(g=>{ const {tie,rows}=payoutsFor(g.players,g.stake); if(!tie) rows.forEach(r=>{ nets[r.from]=(nets[r.from]||0)-r.amount; nets[r.to]=(nets[r.to]||0)+r.amount; }); });
       const bal=Object.entries(nets).sort((a,b)=>b[1]-a[1]).map(([n,v])=>
         `<div class="liab"><span>${esc(n)}</span><b style="color:${v>0.005?'var(--good)':v<-0.005?'#ffb3ab':'var(--muted)'}">${v>0.005?'+':v<-0.005?'−':''}$${money(Math.abs(v)<0.005?0:Math.abs(v))}</b></div>`).join('');
       const tr=settleNets(nets);
-      crewLedger=`<h3 style="font-size:13px;margin:4px 0 2px;color:#fff">💰 All-time crew ledger · ${merged.length} game${merged.length!==1?'s':''}</h3>${bal}
-        ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}<div class="spacer"></div>`;
+      crewLedger=`<h3 style="font-size:13px;margin:4px 0 2px;color:#fff">💰 Tonight’s ledger · ${tonight.length} game${tonight.length!==1?'s':''}</h3>${bal}
+        ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}
+        <div class="cb-hint" style="margin:4px 0 2px">Covers this session only — old nights don’t haunt anyone.</div><div class="spacer"></div>`;
     }
     const items=merged.length?merged.map((g,k)=>{
       const {winTotal,winner,tie}=payoutsFor(g.players,g.stake);
