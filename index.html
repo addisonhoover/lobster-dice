@@ -308,7 +308,23 @@ document.getElementById('histBtn').onclick=()=>{ modal={type:'history'}; render(
 let msg='', msgClass='';
 function flash(m,c){ msg=m; msgClass=c||''; }
 
-function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} }
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} pushLive(); }
+
+/* broadcast live game state to watchers (debounced; scorekeeper's phone only) */
+let liveTimer=null;
+function pushLive(){
+  if(typeof crew!=='function') return;
+  const c=crew(); if(!c||!S||!S.players) return;
+  clearTimeout(liveTimer);
+  liveTimer=setTimeout(async()=>{
+    try{
+      const state={ phase:S.phase, stake:S.stake, ts:Date.now(), cur:S.cur, accrual:S.accrual||0,
+        players:S.players.map(p=>({name:p.name,banked:p.banked,busts:p.busts,dubs:p.dubs})),
+        endgame:S.endgame?{bestTotal:S.endgame.bestTotal,bestPlayer:S.endgame.bestPlayer,round:S.endgame.round,left:S.endgame.q.length}:null };
+      await fetch(`${SUPA_URL}/rest/v1/live`,{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({code:c.code,state,updated_at:new Date().toISOString()})});
+    }catch(e){}
+  },1000);
+}
 function load(){ try{ const r=localStorage.getItem(STORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
 function wipe(){ try{ localStorage.removeItem(STORE); }catch(e){} }
 
@@ -334,6 +350,7 @@ function archiveGame(){
 const SUPA_URL='https://exxpaetnxamzqifqkyly.supabase.co';
 const SUPA_KEY='sb_publishable_9GwDTfWTGJYRq0Qjb1EO8g_n5Bf6ayw';
 const CREWSTORE='lobsterDice.crew', OUTBOX='lobsterDice.outbox';
+const WATCH=(new URLSearchParams(location.search)).get('watch');
 let cloudGames=null, histList=null;
 
 function crew(){ try{ const r=localStorage.getItem(CREWSTORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
@@ -403,6 +420,68 @@ function backfill(){
   h.forEach(g=>queueGame(g));
 }
 
+/* ============================ WATCH MODE (spectators) ============================
+   Anyone opening ?watch=CODE — app or plain browser — gets a read-only,
+   self-refreshing scoreboard. Only the scorekeeper's phone feeds it. */
+let watchData=null, watchGames=null;
+async function fetchWatch(){
+  try{
+    const r=await fetch(`${SUPA_URL}/rest/v1/live?code=eq.${encodeURIComponent(WATCH)}&select=state,updated_at`,{headers:sbHeaders()});
+    if(r.ok){ const a=await r.json(); watchData=a.length?a[0]:null; }
+  }catch(e){}
+  const st=watchData&&watchData.state;
+  if(st&&st.phase==='playing') watchGames=null;                 // new game running — refetch ledger at its end
+  if(st&&st.phase==='ended'&&!watchGames){
+    try{
+      const r2=await fetch(`${SUPA_URL}/rest/v1/games?code=eq.${encodeURIComponent(WATCH)}&select=stake,players,played_at&order=played_at.desc&limit=200`,{headers:sbHeaders()});
+      if(r2.ok) watchGames=await r2.json();
+    }catch(e){}
+  }
+  render();
+}
+function startWatch(){ foot.textContent='📺 live scoreboard · crew '+WATCH; fetchWatch(); setInterval(fetchWatch,4000); }
+function renderWatch(){
+  const st=watchData&&watchData.state;
+  if(!st){
+    app.innerHTML=`<div class="card" style="text-align:center"><div class="burst">📺</div>
+      <h2 style="font-size:20px">Waiting for the table…</h2>
+      <p style="color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 0">Crew <b style="color:#fff">${esc(WATCH||'')}</b> isn’t broadcasting yet.<br>This page updates by itself — leave it open.</p></div>`;
+    return;
+  }
+  const lead=Math.max(...st.players.map(p=>p.banked));
+  const anyFire=st.players.some(p=>p.banked>=FIRE);
+  const rows=st.players.map((p,i)=>{
+    const isLead=p.banked===lead&&lead>0, gap=lead-p.banked;
+    return `<div class="p ${i===st.cur&&st.phase==='playing'?'active':''} ${p.banked===0?'zero':''}">
+      <div class="pn">${i===st.cur&&st.phase==='playing'?'<span class="dot"></span>':''}${esc(p.name)}${p.banked===0?` <span class="tag0">— on 0</span>${anyFire?'<span class="warn0">⚠️</span>':''}`:''}</div>
+      <div class="gap">${isLead?'<span class="lead">LEAD</span>':(gap>0?`−${gap}`:'')}</div>
+      <div class="score ${p.banked>=FIRE?'fire':''}">${p.banked>=FIRE?'<span class="fl">🔥</span>':''}${p.banked}</div></div>`;
+  }).join('');
+  const ago=Math.max(0,Math.round((Date.now()-Date.parse(watchData.updated_at))/1000));
+  const banner=st.endgame&&st.phase==='playing'?`<div class="banner">🏁 Final round ${st.endgame.round} — beat ${st.endgame.bestTotal} (${esc(st.players[st.endgame.bestPlayer].name)})<small>${st.endgame.left} turn${st.endgame.left!==1?'s':''} left · no ties — beat it outright</small></div>`:'';
+  const turnHtml=st.phase==='playing'?`<div class="card" style="text-align:center;padding:13px"><span style="color:var(--muted);font-size:13px;font-weight:700">🎲 ${esc(st.players[st.cur].name)} is rolling</span><span style="font-size:24px;font-weight:900;margin-left:10px;color:var(--good)">${st.accrual>0?'+'+st.accrual:''}</span></div>`:'';
+  let endHtml='';
+  if(st.phase==='ended'){
+    const {winTotal,winner,tie,rows:pr}=payoutsFor(st.players,Number(st.stake));
+    endHtml=`<div class="card" style="text-align:center"><div class="burst">🏆</div><h2 style="font-size:21px">${tie?'It’s a tie!':esc(winner.name)+' wins!'} · ${winTotal}</h2></div>
+      <div class="card"><div class="label">💰 Settle up — $${fmtStake(Number(st.stake))}/point</div>
+      ${tie?'<p class="hint">Tie — house call.</p>':pr.map(r=>`<div class="ledger ${r.zero?'z':''}"><div class="txt">${esc(r.from)} → ${esc(r.to)}${r.zero?'<div class="zbadge">💥 ZERO DOUBLER</div>':''}</div><div class="amt">$${money(r.amount)}</div></div>`).join('')}</div>`;
+    if(watchGames&&watchGames.length){
+      const nets={};
+      watchGames.forEach(g=>{ const {tie:t2,rows:r2}=payoutsFor(g.players,Number(g.stake)); if(!t2) r2.forEach(r=>{ nets[r.from]=(nets[r.from]||0)-r.amount; nets[r.to]=(nets[r.to]||0)+r.amount; }); });
+      const bal=Object.entries(nets).sort((a,b)=>b[1]-a[1]).map(([n,v])=>
+        `<div class="liab"><span>${esc(n)}</span><b style="color:${v>0.005?'var(--good)':v<-0.005?'#ffb3ab':'var(--muted)'}">${v>0.005?'+':v<-0.005?'−':''}$${money(Math.abs(v)<0.005?0:Math.abs(v))}</b></div>`).join('');
+      const tr=settleNets(nets);
+      endHtml+=`<div class="card"><div class="label">📊 All-time crew ledger · ${watchGames.length} game${watchGames.length!==1?'s':''}</div>${bal}
+        ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}</div>`;
+    }
+  }
+  app.innerHTML=`${banner}
+    <div class="card"><div class="label">📺 Live · crew ${esc(WATCH)}<span style="font-weight:700;letter-spacing:0;text-transform:none;color:#6f83a6">updated ${ago}s ago</span></div><div class="sb">${rows}</div></div>
+    ${turnHtml}${endHtml}
+    <div class="hint">Read-only live scoreboard — refreshes itself, no app needed. 🦞</div>`;
+}
+
 /* running money ledger across consecutive games with the SAME crew */
 const SSTORE='lobsterDice.series';
 function loadSeries(){ try{ const r=localStorage.getItem(SSTORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
@@ -450,7 +529,7 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.2 · app design by addison hoover';
+  foot.textContent='v4.3 · app design by addison hoover';
   app.innerHTML=`
     <div class="card">
       <div class="label">Players <span style="color:#6f83a6;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
@@ -760,6 +839,10 @@ function renderModal(){
              <button class="lk" id="m_crewleave">Leave</button>
            </div>
            <div class="cb-hint" style="margin-top:6px">${cloudGames===null?'Syncing…':`${merged.length} game${merged.length!==1?'s':''} shared`}${pend?` · <span style="color:var(--warn)">${pend} waiting to upload</span>`:' · every phone with this code sees the same history & ledger'}</div>
+           <div class="row" style="margin-top:10px">
+             <button class="btn ghost sm" id="m_watch">📺 Watch live</button>
+             <button class="btn sea sm" id="m_sharewatch">Share live link</button>
+           </div>
          </div>`
       : `<div class="crewbox">
            <div class="cb-title">🔗 Crew sync</div>
@@ -843,6 +926,14 @@ function renderModal(){
   if(ci) ci.onkeydown=e=>{ if(e.key==='Enter') doJoin(); };
   const cl=document.getElementById('m_crewleave');
   if(cl) cl.onclick=()=>{ if(confirm('Leave this crew? Synced games stay in the cloud; this phone just stops syncing.')){ setCrew(null); cloudGames=null; render(); } };
+  const mw=document.getElementById('m_watch');
+  if(mw) mw.onclick=()=>{ const c2=crew(); if(c2) location.href=location.pathname+'?watch='+encodeURIComponent(c2.code); };
+  const ms=document.getElementById('m_sharewatch');
+  if(ms) ms.onclick=async()=>{ const c2=crew(); if(!c2) return;
+    const url=location.origin+location.pathname+'?watch='+encodeURIComponent(c2.code);
+    if(navigator.share){ try{ await navigator.share({title:'Lobster Dice — live scoreboard',text:'Watch our Lobster Dice game live:',url}); }catch(e){} }
+    else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('Live link copied — text it to anyone:\n'+url); }catch(e){ alert('Live link:\n'+url); } }
+    else alert('Live link:\n'+url); };
   const f=document.getElementById('m_finish'); if(f) f.onclick=()=>{ modal=null; finalize(); };
   const nw=document.getElementById('m_new'); if(nw) nw.onclick=()=>{ if(confirm('Scrap this game and start over?')){ wipe(); S=null; modal=null; newSetup(); render(); } };
 }
@@ -914,7 +1005,8 @@ function renderEnd(){
 
 /* ============================ ROUTER + UTIL ============================ */
 function render(){
-  if(!S){ if(!draft) newSetup(); renderSetup(); }
+  if(WATCH){ renderWatch(); }
+  else if(!S){ if(!draft) newSetup(); renderSetup(); }
   else if(S.phase==='playing') renderGame();
   else if(S.phase==='ended') renderEnd();
   else renderSetup();
@@ -929,6 +1021,7 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
 (function(){
   const sp=document.getElementById('splash');
   setTimeout(()=>{ sp.classList.add('out'); setTimeout(()=>sp.remove(),380); },1900);
+  if(WATCH){ startWatch(); return; }
   const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
   trySync();   // push any games that finished offline
   if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
