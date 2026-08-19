@@ -299,7 +299,7 @@
 /* ============================ CONSTANTS ============================ */
 const GATE=21, NINE69=69, WIN=101, FIRE=75, STORE='lobsterDice.v2';
 const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survives crossing midnight)
-const STAKES=[0.25,0.5,1,2,5,10,100,1000];
+const STAKES=[0.01,0.10,0.15,0.25,1,5,10,100];
 
 /* ============================ STATE ============================ */
 let S=null, history=[], modal=null, entryPts='';
@@ -1037,7 +1037,7 @@ function render(){
   if(modal) renderModal();
 }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function fmtStake(s){ return Number.isInteger(s)?s.toLocaleString():s.toString(); }
+function fmtStake(s){ return Number.isInteger(s)?s.toLocaleString():s.toFixed(2); }
 function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{minimumFractionDigits:Number.isInteger(n)?0:2,maximumFractionDigits:2}); }
 
 /* ============================ BOOT ============================ */
