@@ -41,6 +41,13 @@ window.alert = () => {};
 // ---- join a crew from the history modal ----
 click(q('#histBtn'));
 ok('history modal offers crew UI (create + join form)', !!q('#m_crewnew') && !!q('#crewcode') && !!q('#m_crewjoin'));
+// share-the-app button
+let shared=null;
+window.navigator.share = async (d) => { shared = d; };
+ok('share-the-app button present', !!q('#m_shareapp'));
+click(q('#m_shareapp'));
+await sleep(20);
+ok('share sheet gets the app link', shared && shared.url === 'http://localhost:8321/' && shared.text.includes('Home Screen'));
 q('#crewcode').value='claw';
 click(q('#m_crewjoin'));
 await sleep(50);

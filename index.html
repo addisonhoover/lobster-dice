@@ -873,7 +873,10 @@ function renderModal(){
         <span>${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})} · ${g.players.length} players · $${fmtStake(Number(g.stake))}/pt</span>
         <b>🏆 ${tie?'Tie':esc(winner.name)} · ${winTotal}</b></button>`;
     }).join(''):'<p>No finished games yet — every completed game lands here automatically.</p>';
-    html=`<div class="modal"><h2>📜 Previous games</h2>${crewHtml}${crewLedger}${items}<div class="spacer"></div><button class="btn ghost" id="m_close">Close</button></div>`;
+    const shareIcon='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:7px"><path d="M12 3v12"/><path d="M8 6l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+    html=`<div class="modal"><h2>📜 Previous games</h2>
+      <button class="btn gold sm" id="m_shareapp" style="margin-bottom:12px">${shareIcon}Share the app with the table</button>
+      ${crewHtml}${crewLedger}${items}<div class="spacer"></div><button class="btn ghost" id="m_close">Close</button></div>`;
   } else if(modal.type==='histgame'){
     const g=histList?histList[modal.idx]:loadHist()[modal.idx];
     if(!g){ modal={type:'history'}; renderModal(); return; }
@@ -926,6 +929,14 @@ function renderModal(){
   if(ci) ci.onkeydown=e=>{ if(e.key==='Enter') doJoin(); };
   const cl=document.getElementById('m_crewleave');
   if(cl) cl.onclick=()=>{ if(confirm('Leave this crew? Synced games stay in the cloud; this phone just stops syncing.')){ setCrew(null); cloudGames=null; render(); } };
+  const sa=document.getElementById('m_shareapp');
+  if(sa) sa.onclick=async()=>{
+    const url=location.origin+location.pathname;
+    const text='Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:';
+    if(navigator.share){ try{ await navigator.share({title:'Lobster Dice',text,url}); }catch(e){} }
+    else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('App link copied — text it to the table:\n'+url); }catch(e){ alert('App link:\n'+url); } }
+    else alert('App link:\n'+url);
+  };
   const mw=document.getElementById('m_watch');
   if(mw) mw.onclick=()=>{ const c2=crew(); if(c2) location.href=location.pathname+'?watch='+encodeURIComponent(c2.code); };
   const ms=document.getElementById('m_sharewatch');
