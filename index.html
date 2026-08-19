@@ -42,7 +42,15 @@
   .top .rules{margin-left:auto;background:var(--card2);border:1px solid var(--line);color:var(--muted);font-weight:800;font-size:12px;padding:9px 12px;border-radius:12px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:14px}
   .label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-  .label .lk{background:var(--card2);border:1px solid var(--line);color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.02em;padding:6px 11px;border-radius:999px;text-transform:none}
+  .lk{background:var(--card2);border:1px solid var(--line);color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.02em;padding:6px 11px;border-radius:999px;text-transform:none}
+  /* crew sync box */
+  .crewbox{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:12px}
+  .crewbox .cb-title{font-weight:800;font-size:14px;margin-bottom:4px}
+  .crewbox .cb-hint{font-size:12px;color:var(--muted);line-height:1.5;text-align:left}
+  .crewcode-big{font-size:26px;font-weight:900;letter-spacing:.3em;color:#fff}
+  .crewrow{display:flex;gap:8px;margin-top:8px}
+  .crewrow input{flex:1;min-width:0;width:100%;text-transform:uppercase;text-align:center;font-size:19px;font-weight:800;letter-spacing:.25em;padding:11px}
+  .crewrow .btn{flex:0 0 92px;width:92px}
   button{font-family:inherit;cursor:pointer;border:none;color:var(--ink)}
   .btn{width:100%;padding:16px;border-radius:16px;font-size:17px;font-weight:800;letter-spacing:-.01em;background:linear-gradient(180deg,var(--coral2),var(--coral));box-shadow:0 8px 20px rgba(255,90,77,.35);transition:transform .06s ease,filter .15s}
   .btn:active{transform:translateY(1px) scale(.995)}
@@ -464,6 +472,7 @@ function renderSetup(){
         <div class="sw ${d.liability?'on':''}"><i></i></div>
       </div>
     </div>
+    <button class="btn dark sm" id="crewbtn" style="margin-bottom:14px">${crew()?`🔗 Crew ${esc(crew().code)} — shared history &amp; ledger`:'🔗 Crew sync — one code, every phone sees the ledger'}</button>
     <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
     <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`;
 
@@ -484,6 +493,7 @@ function renderSetup(){
   document.querySelectorAll('#stakes .chip').forEach(c=>c.onclick=()=>{ d.stake=Number(c.dataset.s); d.customStake=''; renderSetup(); });
   document.getElementById('custom').oninput=e=>{ d.customStake=e.target.value; document.querySelectorAll('#stakes .chip').forEach(x=>x.classList.remove('on')); };
   document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
+  document.getElementById('crewbtn').onclick=()=>{ modal={type:'history'}; render(); refreshCloud(); };
   document.getElementById('start').onclick=startGame;
 }
 
@@ -743,11 +753,26 @@ function renderModal(){
     histList=merged;
     const pend=outbox().length;
     const crewHtml=c
-      ? `<p style="margin:0 0 10px">Crew <b style="color:#fff">${esc(c.code)}</b> — games sync to every phone with this code.${pend?` <span style="color:var(--warn)">${pend} waiting to sync.</span>`:''}
-         <br><button class="lk" id="m_crewleave" style="margin-top:6px">Leave crew</button></p>`
-      : `<p style="margin:0 0 10px">Games live on this phone only. Create a crew code to share history and the money ledger with the whole table.
-         <br><button class="lk" id="m_crewnew" style="margin-top:6px">Create crew code</button>
-         <button class="lk" id="m_crewjoin" style="margin-top:6px">Join with a code</button></p>`;
+      ? `<div class="crewbox">
+           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+             <div><div style="font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.12em">🔗 Crew code</div>
+             <div class="crewcode-big">${esc(c.code)}</div></div>
+             <button class="lk" id="m_crewleave">Leave</button>
+           </div>
+           <div class="cb-hint" style="margin-top:6px">${cloudGames===null?'Syncing…':`${merged.length} game${merged.length!==1?'s':''} shared`}${pend?` · <span style="color:var(--warn)">${pend} waiting to upload</span>`:' · every phone with this code sees the same history & ledger'}</div>
+         </div>`
+      : `<div class="crewbox">
+           <div class="cb-title">🔗 Crew sync</div>
+           <div class="cb-hint">Share one 4-letter code with your table — every phone that joins sees the same game history and money ledger.</div>
+           <div class="spacer"></div>
+           <button class="btn sea sm" id="m_crewnew">Create a crew code</button>
+           <div class="cb-hint" style="text-align:center;margin-top:8px">— or join with the code your scorekeeper shares —</div>
+           <div class="crewrow">
+             <input id="crewcode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off">
+             <button class="btn gold sm" id="m_crewjoin">Join</button>
+           </div>
+           <div class="cb-hint" id="crewmsg" style="margin-top:6px;color:var(--warn)"></div>
+         </div>`;
     let crewLedger='';
     if(c&&merged.length){
       const nets={};
@@ -800,14 +825,22 @@ function renderModal(){
   const cn=document.getElementById('m_crewnew');
   if(cn) cn.onclick=async()=>{ cn.textContent='Creating…'; cn.disabled=true;
     const code=await createCrew();
-    if(code) alert('Your crew code is '+code+' — share it with the table. Anyone who enters it sees the shared history and ledger.');
-    else alert('Couldn’t reach the sync server — check your connection and try again.');
+    if(!code){ const m=document.getElementById('crewmsg'); if(m) m.textContent='Couldn’t reach the sync server — check your connection and try again.'; cn.textContent='Create a crew code'; cn.disabled=false; return; }
     render(); refreshCloud(); };
-  const cj=document.getElementById('m_crewjoin');
-  if(cj) cj.onclick=async()=>{ const code=(prompt('Enter the 4-letter crew code:')||'').trim().toUpperCase(); if(!code) return;
+  const doJoin=async()=>{
+    const inp=document.getElementById('crewcode');
+    const code=(inp&&inp.value||'').trim().toUpperCase();
+    const m=document.getElementById('crewmsg');
+    if(code.length!==4){ if(m) m.textContent='Codes are 4 characters — like CLAW.'; return; }
+    if(m) m.textContent='Checking…';
     const okj=await joinCrew(code);
-    if(!okj) alert('Code not found — double-check it with whoever created it.');
-    render(); refreshCloud(); };
+    if(!okj){ if(m) m.textContent='Code not found — double-check it with whoever created it.'; return; }
+    render(); refreshCloud();
+  };
+  const cj=document.getElementById('m_crewjoin');
+  if(cj) cj.onclick=doJoin;
+  const ci=document.getElementById('crewcode');
+  if(ci) ci.onkeydown=e=>{ if(e.key==='Enter') doJoin(); };
   const cl=document.getElementById('m_crewleave');
   if(cl) cl.onclick=()=>{ if(confirm('Leave this crew? Synced games stay in the cloud; this phone just stops syncing.')){ setCrew(null); cloudGames=null; render(); } };
   const f=document.getElementById('m_finish'); if(f) f.onclick=()=>{ modal=null; finalize(); };

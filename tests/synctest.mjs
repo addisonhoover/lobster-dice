@@ -35,18 +35,18 @@ window.fetch = async (url, opts = {}) => {
   if (u.includes('/rest/v1/games')) return res(200, [cloudGame]);
   return res(404, {});
 };
-window.prompt = () => 'claw';
 window.confirm = () => true;
 window.alert = () => {};
 
 // ---- join a crew from the history modal ----
 click(q('#histBtn'));
-ok('history modal offers crew buttons', !!q('#m_crewnew') && !!q('#m_crewjoin'));
+ok('history modal offers crew UI (create + join form)', !!q('#m_crewnew') && !!q('#crewcode') && !!q('#m_crewjoin'));
+q('#crewcode').value='claw';
 click(q('#m_crewjoin'));
 await sleep(50);
 const crewStored = JSON.parse(window.localStorage.getItem('lobsterDice.crew') || 'null');
 ok('joined crew CLAW (code uppercased)', crewStored && crewStored.code === 'CLAW');
-ok('crew shown in modal with leave option', document.body.textContent.includes('CLAW') && !!q('#m_crewleave'));
+ok('crew code shown big with leave option', !!q('.crewcode-big') && q('.crewcode-big').textContent==='CLAW' && !!q('#m_crewleave'));
 click(q('#m_close'));
 
 // ---- play a game; it should upload automatically ----
