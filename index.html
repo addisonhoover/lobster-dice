@@ -40,7 +40,7 @@
   .top .logo{font-size:32px;filter:drop-shadow(0 4px 8px rgba(255,90,77,.5))}
   .top h1{font-size:23px;background:linear-gradient(90deg,#fff,#ffd0c6 55%,var(--coral));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   .top .sub{font-size:11px;color:var(--muted);font-weight:600;margin-top:1px}
-  .top .rules{margin-left:auto;background:var(--card2);border:1px solid var(--line);color:var(--muted);font-weight:800;font-size:12px;padding:9px 12px;border-radius:12px}
+  .top .rules{margin-left:auto;background:var(--card2);border:1px solid var(--line);color:var(--muted);font-weight:800;font-size:17px;line-height:1;padding:9px 11px;border-radius:12px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadow);backdrop-filter:blur(8px);margin-bottom:14px}
   .label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
   .lk{background:var(--card2);border:1px solid var(--line);color:var(--muted);font-weight:800;font-size:11px;letter-spacing:.02em;padding:6px 11px;border-radius:999px;text-transform:none}
@@ -289,9 +289,9 @@
       <h1>Lobster Dice</h1>
       <div class="sub">scorepad + stakes tracker</div>
     </div>
-    <button class="rules" id="shareBtn" aria-label="Share" style="margin-left:auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
-    <button class="rules" id="histBtn" aria-label="Previous games" style="margin-left:0">📜</button>
-    <button class="rules" id="rulesBtn" aria-label="Rules" style="margin-left:0">☰</button>
+    <button class="rules" id="shareBtn" aria-label="Share" style="margin-left:auto">✈️</button>
+    <button class="rules" id="histBtn" aria-label="Previous games" style="margin-left:0">🏆</button>
+    <button class="rules" id="rulesBtn" aria-label="Rules" style="margin-left:0">📜</button>
   </div>
   <div id="app"></div>
   <div class="footlink" id="foot"></div>
@@ -878,7 +878,7 @@ function renderModal(){
         <span>${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})} · ${g.players.length} players · $${fmtStake(Number(g.stake))}/pt</span>
         <b>🏆 ${tie?'Tie':esc(winner.name)} · ${winTotal}</b></button>`;
     }).join(''):'<p>No finished games yet — every completed game lands here automatically.</p>';
-    html=`<div class="modal"><h2>📜 Previous games</h2>
+    html=`<div class="modal"><h2>🏆 Previous games</h2>
       ${crewHtml}${crewLedger}${items}<div class="spacer"></div><button class="btn ghost" id="m_close">Close</button></div>`;
   } else if(modal.type==='share'){
     const c=crew();
