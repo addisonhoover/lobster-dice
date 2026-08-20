@@ -45,13 +45,12 @@ window.fetch = async (url, opts = {}) => {
 window.confirm = () => true;
 window.alert = () => {};
 
-// ---- join a crew from the history modal ----
-click(q('#histBtn'));
-ok('history modal offers crew UI (create + join form)', !!q('#m_crewnew') && !!q('#crewcode') && !!q('#m_crewjoin'));
-// share-the-app button
+// ---- join a crew from the ✈️ SHARE modal ----
+click(q('#shareBtn'));
+ok('share modal offers app-share + crew join form', !!q('#m_shareapp') && !!q('#m_crewnew') && !!q('#crewcode') && !!q('#m_crewjoin'));
+ok('modal has an X close button', !!q('.mx'));
 let shared=null;
 window.navigator.share = async (d) => { shared = d; };
-ok('share-the-app button present', !!q('#m_shareapp'));
 click(q('#m_shareapp'));
 await sleep(20);
 ok('share sheet gets the app link', shared && shared.url === 'http://localhost:8321/' && shared.text.includes('Home Screen'));
@@ -61,7 +60,9 @@ await sleep(50);
 const crewStored = JSON.parse(window.localStorage.getItem('lobsterDice.crew') || 'null');
 ok('joined crew CLAW (code uppercased)', crewStored && crewStored.code === 'CLAW');
 ok('crew code shown big with leave option', !!q('.crewcode-big') && q('.crewcode-big').textContent==='CLAW' && !!q('#m_crewleave'));
-click(q('#m_close'));
+ok('joined share modal has all three shares', !!q('#m_shareapp') && !!q('#m_sharewatch') && !!q('#m_sharecode'));
+click(q('.mx'));
+ok('X closes the modal', !q('.modal'));
 
 // ---- play a game; it should upload automatically ----
 type('#players input[data-i="0"]', 'Addison'); type('#players input[data-i="1"]', 'Kelsey');
@@ -90,7 +91,9 @@ click(document.querySelectorAll('.histrow')[0]);
 ok('detail modal renders for merged game', document.body.textContent.includes('Turn-by-turn') || document.body.textContent.includes('Standings'));
 click(q('#m_back'));
 
-// ---- leave crew ----
+// ---- leave crew (from the share modal) ----
+click(q('#m_close'));
+click(q('#shareBtn'));
 click(q('#m_crewleave'));
 ok('left crew', window.localStorage.getItem('lobsterDice.crew') === null);
 

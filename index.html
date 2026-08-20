@@ -127,8 +127,9 @@
   .sw.on i{left:23px}
   /* modal */
   .ov{position:fixed;inset:0;background:rgba(5,10,22,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
-  .modal{max-width:440px;width:100%;max-height:86vh;overflow:auto;background:linear-gradient(160deg,#173059,#1b0e2b);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow)}
-  .modal h2{font-size:20px;margin-bottom:8px}
+  .modal{position:relative;max-width:440px;width:100%;max-height:86vh;overflow:auto;background:linear-gradient(160deg,#173059,#1b0e2b);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow)}
+  .modal h2{font-size:20px;margin-bottom:8px;padding-right:38px}
+  .mx{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:11px;background:var(--card2);border:1px solid var(--line);color:var(--muted);font-size:15px;font-weight:800;z-index:2}
   .modal p{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
   .modal .rul{font-size:13px;line-height:1.6;color:#cdd9f0}
   .modal .rul h3{font-size:14px;color:#fff;margin:14px 0 4px}
@@ -288,8 +289,9 @@
       <h1>Lobster Dice</h1>
       <div class="sub">scorepad + stakes tracker</div>
     </div>
-    <button class="rules" id="histBtn">📜</button>
-    <button class="rules" id="rulesBtn" style="margin-left:0">☰ Rules</button>
+    <button class="rules" id="shareBtn" aria-label="Share" style="margin-left:auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+    <button class="rules" id="histBtn" aria-label="Previous games" style="margin-left:0">📜</button>
+    <button class="rules" id="rulesBtn" aria-label="Rules" style="margin-left:0">☰</button>
   </div>
   <div id="app"></div>
   <div class="footlink" id="foot"></div>
@@ -306,11 +308,25 @@ let S=null, history=[], modal=null, entryPts='';
 const app=document.getElementById('app'), foot=document.getElementById('foot');
 document.getElementById('rulesBtn').onclick=()=>{ modal={type:'rules'}; render(); };
 document.getElementById('histBtn').onclick=()=>{ modal={type:'history'}; render(); refreshCloud(); };
+document.getElementById('shareBtn').onclick=()=>{ modal={type:'share'}; render(); };
 
 let msg='', msgClass='';
 function flash(m,c){ msg=m; msgClass=c||''; }
 
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} pushLive(); }
+
+/* keep the screen awake while a game is being scored — no phone-settings trip needed */
+let wakeLock=null;
+async function keepAwake(){
+  try{
+    if('wakeLock' in navigator && S && S.phase==='playing' && !wakeLock){
+      wakeLock=await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release',()=>{ wakeLock=null; });
+    }
+  }catch(e){}
+}
+function releaseAwake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') keepAwake(); });
 
 /* broadcast live game state to watchers (debounced; scorekeeper's phone only) */
 let liveTimer=null;
@@ -539,7 +555,7 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.4 · app design by addison hoover';
+  foot.textContent='v4.5 · app design by addison hoover';
   app.innerHTML=`
     <div class="card">
       <div class="label">Players <span style="color:#6f83a6;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
@@ -561,7 +577,6 @@ function renderSetup(){
         <div class="sw ${d.liability?'on':''}"><i></i></div>
       </div>
     </div>
-    <button class="btn dark sm" id="crewbtn" style="margin-bottom:14px">${crew()?`🔗 Crew ${esc(crew().code)} — shared history &amp; ledger`:'🔗 Crew sync — one code, every phone sees the ledger'}</button>
     <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
     <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`;
 
@@ -582,7 +597,6 @@ function renderSetup(){
   document.querySelectorAll('#stakes .chip').forEach(c=>c.onclick=()=>{ d.stake=Number(c.dataset.s); d.customStake=''; renderSetup(); });
   document.getElementById('custom').oninput=e=>{ d.customStake=e.target.value; document.querySelectorAll('#stakes .chip').forEach(x=>x.classList.remove('on')); };
   document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
-  document.getElementById('crewbtn').onclick=()=>{ modal={type:'history'}; render(); refreshCloud(); };
   document.getElementById('start').onclick=startGame;
 }
 
@@ -596,6 +610,7 @@ function startGame(){
     cur:0, endgame:null, accrual:0, turnAdds:[], mustRoll:false };
   clearHistory(); entryPts=''; flash('','');
   save(); render();
+  keepAwake();
 }
 
 /* ============================ HELPERS ============================ */
@@ -695,7 +710,7 @@ function endgameAdvance(){
   S.cur=eg.q[0];
 }
 
-function finalize(){ S.phase='ended'; modal=null; archiveGame(); save(); render(); }
+function finalize(){ S.phase='ended'; modal=null; archiveGame(); save(); render(); releaseAwake(); }
 
 /* ============================ PAYOUTS ============================ */
 function payoutsFor(players,stake){
@@ -776,7 +791,7 @@ function renderGame(){
     </div>
 
     ${liabHtml}
-    <button class="endlink" id="menu">⚙︎ End game early · new game</button>`;
+    <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`;
 
   // scoreboard interactions
   document.querySelectorAll('[data-sel]').forEach(el=>{ if(el.dataset.sel!=='') el.onclick=ev=>{ if(ev.target.closest('[data-log]'))return; if(+el.dataset.sel===S.cur) return; snapshot(); S.cur=+el.dataset.sel; S.accrual=0; S.turnAdds=[]; flash(`${S.players[S.cur].name} is up.`,''); entryPts=''; save(); render(); }; });
@@ -842,30 +857,8 @@ function renderModal(){
     histList=merged;
     const pend=outbox().length;
     const crewHtml=c
-      ? `<div class="crewbox">
-           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-             <div><div style="font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.12em">🔗 Crew code</div>
-             <div class="crewcode-big">${esc(c.code)}</div></div>
-             <button class="lk" id="m_crewleave">Leave</button>
-           </div>
-           <div class="cb-hint" style="margin-top:6px">${cloudGames===null?'Syncing…':`${merged.length} game${merged.length!==1?'s':''} shared`}${pend?` · <span style="color:var(--warn)">${pend} waiting to upload</span>`:' · every phone with this code sees the same history & ledger'}</div>
-           <div class="row" style="margin-top:10px">
-             <button class="btn ghost sm" id="m_watch">📺 Watch live</button>
-             <button class="btn sea sm" id="m_sharewatch">Share live link</button>
-           </div>
-         </div>`
-      : `<div class="crewbox">
-           <div class="cb-title">🔗 Crew sync</div>
-           <div class="cb-hint">Share one 4-letter code with your table — every phone that joins sees the same game history and money ledger.</div>
-           <div class="spacer"></div>
-           <button class="btn sea sm" id="m_crewnew">Create a crew code</button>
-           <div class="cb-hint" style="text-align:center;margin-top:8px">— or join with the code your scorekeeper shares —</div>
-           <div class="crewrow">
-             <input id="crewcode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off">
-             <button class="btn gold sm" id="m_crewjoin">Join</button>
-           </div>
-           <div class="cb-hint" id="crewmsg" style="margin-top:6px;color:var(--warn)"></div>
-         </div>`;
+      ? `<p class="cb-hint" style="margin:0 0 10px">🔗 Crew ${esc(c.code)} · ${cloudGames===null?'syncing…':`${merged.length} game${merged.length!==1?'s':''} shared`}${pend?` · <span style="color:var(--warn)">${pend} waiting to upload</span>`:''}</p>`
+      : '';
     let crewLedger='';
     const tonight=c?merged.filter(g=>g.ts>=Date.now()-TONIGHT_MS):[];
     if(tonight.length){
@@ -885,10 +878,46 @@ function renderModal(){
         <span>${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})} · ${g.players.length} players · $${fmtStake(Number(g.stake))}/pt</span>
         <b>🏆 ${tie?'Tie':esc(winner.name)} · ${winTotal}</b></button>`;
     }).join(''):'<p>No finished games yet — every completed game lands here automatically.</p>';
-    const shareIcon='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:7px"><path d="M12 3v12"/><path d="M8 6l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
     html=`<div class="modal"><h2>📜 Previous games</h2>
-      <button class="btn gold sm" id="m_shareapp" style="margin-bottom:12px">${shareIcon}Share the app with the table</button>
       ${crewHtml}${crewLedger}${items}<div class="spacer"></div><button class="btn ghost" id="m_close">Close</button></div>`;
+  } else if(modal.type==='share'){
+    const c=crew();
+    const shareIcon='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:7px"><path d="M12 3v12"/><path d="M8 6l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+    if(c){
+      html=`<div class="modal"><h2>✈️ Share</h2>
+        <div class="crewbox">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <div><div style="font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.12em">🔗 Your crew code</div>
+            <div class="crewcode-big">${esc(c.code)}</div></div>
+            <button class="lk" id="m_crewleave">Leave</button>
+          </div>
+        </div>
+        <button class="btn gold sm" id="m_shareapp">${shareIcon}Share the Lobster Dice app</button>
+        <div class="spacer"></div>
+        <button class="btn sea sm" id="m_sharewatch">📺 Share the link to watch live</button>
+        <div class="cb-hint" style="text-align:center;margin:6px 0 2px"><button class="lk" id="m_watch">or open the live scoreboard yourself</button></div>
+        <div class="spacer"></div>
+        <button class="btn ghost sm" id="m_sharecode">🔗 Share the crew code · ${esc(c.code)}</button>
+        <div class="spacer"></div>
+        <button class="btn ghost" id="m_close">Close</button></div>`;
+    } else {
+      html=`<div class="modal"><h2>✈️ Share</h2>
+        <button class="btn gold sm" id="m_shareapp">${shareIcon}Share the Lobster Dice app</button>
+        <div class="spacer"></div>
+        <div class="crewbox">
+          <div class="cb-title">🔗 Crew code</div>
+          <div class="cb-hint">One code per friend group — every phone with it shares the same history and money ledger.</div>
+          <div class="spacer"></div>
+          <button class="btn sea sm" id="m_crewnew">Create a crew code</button>
+          <div class="cb-hint" style="text-align:center;margin-top:8px">— or enter the code someone gave you —</div>
+          <div class="crewrow">
+            <input id="crewcode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off">
+            <button class="btn gold sm" id="m_crewjoin">Join</button>
+          </div>
+          <div class="cb-hint" id="crewmsg" style="margin-top:6px;color:var(--warn)"></div>
+        </div>
+        <button class="btn ghost" id="m_close">Close</button></div>`;
+    }
   } else if(modal.type==='histgame'){
     const g=histList?histList[modal.idx]:loadHist()[modal.idx];
     if(!g){ modal={type:'history'}; renderModal(); return; }
@@ -917,6 +946,8 @@ function renderModal(){
   ov.innerHTML=html;
   document.querySelector('.wrap').appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov){ modal=null; render(); } });
+  const mEl=ov.querySelector('.modal');
+  if(mEl){ mEl.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="Close">✕</button>'); mEl.querySelector('.mx').onclick=()=>{ modal=null; render(); }; }
   const close=document.getElementById('m_close'); if(close) close.onclick=()=>{ modal=null; render(); };
   const back=document.getElementById('m_back'); if(back) back.onclick=()=>{ modal={type:'history'}; render(); };
   ov.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{ modal={type:'histgame',idx:+b.dataset.h}; render(); });
@@ -949,6 +980,13 @@ function renderModal(){
     else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('App link copied — text it to the table:\n'+url); }catch(e){ alert('App link:\n'+url); } }
     else alert('App link:\n'+url);
   };
+  const sc=document.getElementById('m_sharecode');
+  if(sc) sc.onclick=async()=>{ const c2=crew(); if(!c2) return;
+    const url=location.origin+location.pathname;
+    const text=`Join our Lobster Dice crew — code ${c2.code}. Open the app, tap the ✈️ share button, and enter it:`;
+    if(navigator.share){ try{ await navigator.share({title:'Lobster Dice crew code',text,url}); }catch(e){} }
+    else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(text+' '+url); alert('Copied — text it to the table.'); }catch(e){ alert(text+' '+url); } }
+    else alert(text+' '+url); };
   const mw=document.getElementById('m_watch');
   if(mw) mw.onclick=()=>{ const c2=crew(); if(c2) location.href=location.pathname+'?watch='+encodeURIComponent(c2.code); };
   const ms=document.getElementById('m_sharewatch');
@@ -1046,6 +1084,7 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
   setTimeout(()=>{ sp.classList.add('out'); setTimeout(()=>sp.remove(),380); },1900);
   if(WATCH){ startWatch(); return; }
   const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
+  keepAwake();   // resume screen lock protection if a game was in progress
   trySync();   // push any games that finished offline
   if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 })();

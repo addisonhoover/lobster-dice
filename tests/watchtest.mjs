@@ -36,7 +36,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const last = JSON.parse(livePosts[livePosts.length - 1].body);
   ok('broadcast carries code + players + phase', last.code === 'CLAW' && last.state.phase === 'playing' && last.state.players.length === 2);
   ok('broadcast has banked totals', last.state.players[0].banked === 22);
-  ok('crew box offers Watch live + Share link', (click(q('#histBtn')), !!q('#m_watch') && !!q('#m_sharewatch')));
+  ok('share modal offers watch-link + crew-code shares', (click(q('#shareBtn')), !!q('#m_sharewatch') && !!q('#m_sharecode') && !!q('#m_watch')));
 }
 
 // ---------- side 2: a watcher mid-game ----------
