@@ -24,7 +24,9 @@
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0}
-  html{background:linear-gradient(160deg,#0b1f3a,#12325c 45%,#1b0e2b)}  /* same gradient as the app: whatever peeks through (status bar, overscroll) blends invisibly */
+  /* solid navy base: iOS extends COLORS (not gradients) into the status bar / overscroll zones.
+     Navy matches the app's top edge; the gradient rides on top for anywhere images do render. */
+  html{background:#0b1f3a linear-gradient(160deg,#0b1f3a,#12325c 45%,#1b0e2b)}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
     color:var(--ink);
