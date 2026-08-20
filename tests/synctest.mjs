@@ -55,12 +55,14 @@ click(q('#m_shareapp'));
 await sleep(20);
 ok('share sheet gets the app link', shared && shared.url === 'http://localhost:8321/' && shared.text.includes('Home Screen'));
 q('#crewcode').value='claw';
-click(q('#m_crewjoin'));
-await sleep(50);
+click(q('#m_crewjoin'));   // "Watch" — joins (no prior crew) then navigates to ?watch=CLAW
+await sleep(60);
 const crewStored = JSON.parse(window.localStorage.getItem('lobsterDice.crew') || 'null');
-ok('joined crew CLAW (code uppercased)', crewStored && crewStored.code === 'CLAW');
-ok('crew code shown big with leave option', !!q('.crewcode-big') && q('.crewcode-big').textContent==='CLAW' && !!q('#m_crewleave'));
-ok('joined share modal has all three shares', !!q('#m_shareapp') && !!q('#m_sharewatch') && !!q('#m_sharecode'));
+ok('typing a code joins the crew (uppercased)', crewStored && crewStored.code === 'CLAW');
+// reopen the share modal: joined state
+click(q('#shareBtn'));
+ok('joined state: code shown big with leave option', !!q('.crewcode-big') && q('.crewcode-big').textContent==='CLAW' && !!q('#m_crewleave'));
+ok('joined state: share app + share Claw Watch code + prefilled watch field', !!q('#m_shareapp') && !!q('#m_sharecode') && q('#crewcode').value==='CLAW');
 click(q('.mx'));
 ok('X closes the modal', !q('.modal'));
 
