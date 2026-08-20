@@ -55,6 +55,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const dom = new JSDOM(html, {
     runScripts: 'dangerously', url: 'http://localhost:8321/?watch=CLAW',
     beforeParse(window) {
+      Object.defineProperty(window.navigator, 'wakeLock', { value: { request: async () => { window.__wl = (window.__wl || 0) + 1; return { release() {}, addEventListener() {} }; } } });
       window.fetch = async (url) => {
         const u = String(url);
         if (u.includes('/rest/v1/live')) return { ok: true, status: 200, json: async () => [liveRow] };
@@ -70,6 +71,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   ok('fire + zero-warning visible to watchers', !!document.querySelector('.score.fire') && !!document.querySelector('.warn0'));
   ok('no input controls for watchers', !document.querySelector('#bank') && !document.querySelector('.rc'));
   ok('live view has a way home', !!document.querySelector('#watchback'));
+  ok('watcher screen kept awake during live game', (dom.window.__wl || 0) >= 1);
 }
 
 // ---------- side 3: a watcher after the game ends ----------
@@ -103,6 +105,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(150);
   const t = document.body.textContent;
   ok('watcher sees the winner', t.includes('Addison wins!'));
+  ok('dismount: ranked final standings shown', !!document.querySelector('.stand.win') && t.includes('Final standings') && t.includes('#2'));
+  ok('dismount: live board gone', !document.querySelector('.sb') && !document.querySelector('#app').textContent.includes('is rolling'));
   ok('watcher sees payouts incl. zero doubler', t.includes('Settle up') && t.includes('ZERO DOUBLER') && t.includes('$224'));
   ok('watcher sees tonight ledger', t.includes('Tonight') && t.includes('1 game'));
   ok('stale games excluded from tonight ledger', !t.includes('MarchGuy'));
