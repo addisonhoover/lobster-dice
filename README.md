@@ -1,5 +1,7 @@
 # 🦞 Lobster Dice
 
+[![tests](https://github.com/addisonhoover/lobster-dice/actions/workflows/test.yml/badge.svg)](https://github.com/addisonhoover/lobster-dice/actions/workflows/test.yml) [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **Scorepad + stakes tracker** for the dice game Lobster Dice — replaces pen, paper, and mental math. Enter names, tap each roll as it lands, and the app enforces every rule, tracks the money, and settles the series.
 
 **Live app:** https://lobster-dice.vercel.app · app design by addison hoover
@@ -10,14 +12,16 @@ Two dice whose 1-faces are lobsters (🦞, 2–6). Keep rolling to build a turn 
 
 ## Stack
 
-Single self-contained `index.html` (vanilla JS, no build step, no backend). Installable PWA (`manifest.webmanifest`, `sw.js` — network-first HTML so updates land immediately, cache-first assets for offline). Game state, history, and series ledgers persist in `localStorage`.
+Single self-contained `index.html` (vanilla JS, no build step, no framework). Installable PWA (`manifest.webmanifest`, `sw.js` — network-first HTML so updates land immediately, cache-first assets for offline). Local-first: game state, history, and series ledgers persist in `localStorage` and the game never waits on the network.
+
+Optional **crew sync** adds a Supabase backend (`supabase/*.sql`): finished games queue in an outbox and upload when possible, so any phone holding the 4-character crew code sees the shared history and ledger. The scorekeeper's phone also broadcasts live state that watcher phones poll. The `games` ledger is append-only by design — the schema grants `insert`/`select` to anon and deliberately defines no update or delete policy, so recorded history cannot be rewritten.
 
 ## Develop
 
 ```bash
 npm install        # test dependencies only (jsdom)
 npm run serve      # local server at http://localhost:8321
-npm test           # 5 suites, ~100 assertions, drives the real DOM headlessly
+npm test           # 7 suites, 134 assertions, drives the real DOM headlessly via jsdom
 npm run deploy     # ship to production (Vercel)
 ```
 
@@ -32,3 +36,9 @@ npm run deploy     # ship to production (Vercel)
 | `tests/endtest.mjs` | endgame: no-tie block, lead steal, leader-sits-out countdown |
 | `tests/endtest5.mjs` | the canonical 5-player endgame walkthrough, move for move |
 | `tests/seriestest.mjs` | splash, branding, multi-game series ledger + minimal-payment settle |
+| `tests/synctest.mjs` | crew sync: outbox queueing, upload, shared history merge |
+| `tests/watchtest.mjs` | live watch mode: broadcast state, watcher rendering, endgame dismount |
+
+## License
+
+MIT — see [LICENSE](LICENSE).
