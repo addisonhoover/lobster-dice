@@ -45,24 +45,33 @@ window.fetch = async (url, opts = {}) => {
 window.confirm = () => true;
 window.alert = () => {};
 
-// ---- join a crew from the ✈️ SHARE modal ----
+// ---- the always-on code + the ✈️ SHARE modal ----
+// (boot's provisioning attempt ran before the mock network existed — the share
+// modal's retry path provisions on open, which is the same self-healing users get)
 click(q('#shareBtn'));
-ok('share modal offers app-share + crew join form', !!q('#m_shareapp') && !!q('#m_crewnew') && !!q('#crewcode') && !!q('#m_crewjoin'));
+await sleep(120);
+const autoCrew = JSON.parse(window.localStorage.getItem('lobsterDice.crew') || 'null');
+ok('code auto-provisioned (no create step)', autoCrew && /^[A-Z0-9]{4}$/.test(autoCrew.code));
+ok('share modal: app-share on top, code box, watch field — no create/leave/share-code buttons',
+  !!q('#m_shareapp') && !!q('#m_codebox') && !!q('#m_crewjoin') && !q('#m_crewnew') && !q('#m_crewleave') && !q('#m_sharecode'));
+ok('app-share sits above the code box', q('.modal').innerHTML.indexOf('m_shareapp') < q('.modal').innerHTML.indexOf('m_codebox'));
+ok('code shown big', q('.crewcode-big').textContent === autoCrew.code);
+ok('watch field starts empty with dash placeholder', q('#crewcode').value === '' && q('#crewcode').placeholder === '- - - -');
 ok('modal has an X close button', !!q('.mx'));
 let shared=null;
 window.navigator.share = async (d) => { shared = d; };
 click(q('#m_shareapp'));
 await sleep(20);
 ok('share sheet gets the app link', shared && shared.url === 'http://localhost:8321/' && shared.text.includes('Home Screen'));
+shared=null;
+click(q('#m_codebox'));
+await sleep(20);
+ok('tapping the code box shares code + watch link', shared && shared.text.includes(autoCrew.code) && shared.url.includes('watch='+autoCrew.code));
 q('#crewcode').value='claw';
-click(q('#m_crewjoin'));   // "Watch" — joins (no prior crew) then navigates to ?watch=CLAW
+click(q('#m_crewjoin'));   // "Watch" — validates then navigates; never hijacks your own code
 await sleep(60);
-const crewStored = JSON.parse(window.localStorage.getItem('lobsterDice.crew') || 'null');
-ok('typing a code joins the crew (uppercased)', crewStored && crewStored.code === 'CLAW');
-// reopen the share modal: joined state
-click(q('#shareBtn'));
-ok('joined state: code shown big with leave option', !!q('.crewcode-big') && q('.crewcode-big').textContent==='CLAW' && !!q('#m_crewleave'));
-ok('joined state: share app + share Claw Watch code + prefilled watch field', !!q('#m_shareapp') && !!q('#m_sharecode') && q('#crewcode').value==='CLAW');
+const crewAfter = JSON.parse(window.localStorage.getItem('lobsterDice.crew') || 'null');
+ok('watching another code does not replace your own', crewAfter && crewAfter.code === autoCrew.code);
 click(q('.mx'));
 ok('X closes the modal', !q('.modal'));
 
@@ -93,11 +102,9 @@ click(document.querySelectorAll('.histrow')[0]);
 ok('detail modal renders for merged game', document.body.textContent.includes('Turn-by-turn') || document.body.textContent.includes('Standings'));
 click(q('#m_back'));
 
-// ---- leave crew (from the share modal) ----
-click(q('#m_close'));
-click(q('#shareBtn'));
-click(q('#m_crewleave'));
-ok('left crew', window.localStorage.getItem('lobsterDice.crew') === null);
+// ---- the code is permanent: still there after everything ----
+const finalCrew = JSON.parse(window.localStorage.getItem('lobsterDice.crew') || 'null');
+ok('always-on code survives the session', finalCrew && finalCrew.code === autoCrew.code);
 
 console.log('\n' + pass + ' passed, ' + fail + ' failed');
 process.exit(fail ? 1 : 0);

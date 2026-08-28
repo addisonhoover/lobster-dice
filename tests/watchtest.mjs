@@ -36,7 +36,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const last = JSON.parse(livePosts[livePosts.length - 1].body);
   ok('broadcast carries code + players + phase', last.code === 'CLAW' && last.state.phase === 'playing' && last.state.players.length === 2);
   ok('broadcast has banked totals', last.state.players[0].banked === 22);
-  ok('share modal: Claw Watch share + watch field', (click(q('#shareBtn')), !!q('#m_sharecode') && !!q('#crewcode') && q('#crewcode').value==='CLAW'));
+  ok('share modal: code box + empty dash watch field', (click(q('#shareBtn')), !!q('#m_codebox') && q('.crewcode-big').textContent==='CLAW' && q('#crewcode').value==='' && q('#crewcode').placeholder==='- - - -'));
 }
 
 // ---------- side 2: a watcher mid-game ----------

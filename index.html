@@ -490,13 +490,19 @@ async function createCrew(){
   }
   return null;
 }
-async function joinCrew(code){
+async function codeExists(code){
   try{
     const r=await fetch(`${SUPA_URL}/rest/v1/tables?code=eq.${encodeURIComponent(code)}&select=code`,{headers:sbHeaders()});
     if(!r.ok) return false;
-    const a=await r.json(); if(!a.length) return false;
-    setCrew({code}); backfill(); return true;
+    return (await r.json()).length>0;
   }catch(e){ return false; }
+}
+/* every player owns a code from first launch — generated silently, no create step */
+let ensuring=null;
+function ensureCrew(){
+  if(crew()) return Promise.resolve(crew());
+  if(!ensuring) ensuring=createCrew().then(c=>{ ensuring=null; return c; }).catch(()=>{ ensuring=null; return null; });
+  return ensuring;
 }
 /* on joining/creating a crew, this phone's past games upload too */
 function backfill(){
@@ -662,7 +668,7 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.7 · app design by addison hoover';
+  foot.textContent='v4.8 · app design by addison hoover';
   app.innerHTML=`
     <div class="card">
       <div class="label">Players <span style="color:#8fa2c2;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
@@ -990,26 +996,30 @@ function renderModal(){
       ${crewHtml}${crewLedger}${items}<div class="spacer"></div><button class="btn ghost" id="m_close">Close</button></div>`;
   } else if(modal.type==='share'){
     const c=crew();
+    if(!c) ensureCrew().then(()=>{ if(modal&&modal.type==='share') render(); });
     const plane='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d9ae6e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:7px"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
     const shareIcon='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:7px"><path d="M12 3v12"/><path d="M8 6l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
-    const codeBox=c?`<div class="crewbox">
+    const codeBox=c
+      ? `<div class="crewbox" id="m_codebox" role="button" tabindex="0" style="cursor:pointer">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
             <div><div style="font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.12em">🦞 Your Claw Watch code</div>
             <div class="crewcode-big">${esc(c.code)}</div></div>
-            <button class="lk" id="m_crewleave">Leave</button>
+            <span class="lk">${shareIcon}Share</span>
           </div>
-        </div>`:'';
-    const item2=c?`<button class="btn sea sm" id="m_sharecode">🦞 Share your Claw Watch Code</button>`
-                 :`<button class="btn sea sm" id="m_crewnew">🦞 Create your Claw Watch Code</button>`;
+        </div>`
+      : `<div class="crewbox">
+          <div style="font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.12em">🦞 Your Claw Watch code</div>
+          <div class="crewcode-big" style="color:var(--muted)">· · · ·</div>
+          <div class="cb-hint">Generating your code — needs a moment of internet.</div>
+        </div>`;
     html=`<div class="modal"><h2>${plane}Share</h2>
-        ${codeBox}
         <button class="btn gold sm" id="m_shareapp">${shareIcon}Share the Lobster Dice app</button>
         <div class="spacer"></div>
-        ${item2}
+        ${codeBox}
         <div class="spacer"></div>
-        <div class="cb-hint" style="text-align:left;font-weight:800">Insert Claw Watch Code to watch a game</div>
+        <div class="cb-hint" style="text-align:left;font-weight:800">Insert Claw Watch code to watch a game</div>
         <div class="crewrow" style="margin-top:6px">
-          <input id="crewcode" maxlength="4" placeholder="CODE" autocapitalize="characters" autocomplete="off" value="${c?esc(c.code):''}">
+          <input id="crewcode" maxlength="4" placeholder="- - - -" autocapitalize="characters" autocomplete="off">
           <button class="btn gold sm" id="m_crewjoin">Watch</button>
         </div>
         <div class="cb-hint" id="crewmsg" style="margin-top:6px;color:var(--warn)"></div>
@@ -1048,28 +1058,16 @@ function renderModal(){
   const close=document.getElementById('m_close'); if(close) close.onclick=()=>{ modal=null; render(); };
   const back=document.getElementById('m_back'); if(back) back.onclick=()=>{ modal={type:'history'}; render(); };
   ov.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{ modal={type:'histgame',idx:+b.dataset.h}; render(); });
-  const cn=document.getElementById('m_crewnew');
-  if(cn) cn.onclick=async()=>{ cn.textContent='Creating…'; cn.disabled=true;
-    const code=await createCrew();
-    if(!code){ const m=document.getElementById('crewmsg'); if(m) m.textContent='Couldn’t reach the sync server — check your connection and try again.'; cn.textContent='Create a crew code'; cn.disabled=false; return; }
-    render(); refreshCloud(); };
+
   const doJoin=async()=>{
     const inp=document.getElementById('crewcode');
     const code=(inp&&inp.value||'').trim().toUpperCase();
     const m=document.getElementById('crewmsg');
     if(code.length!==4){ if(m) m.textContent='Codes are 4 characters — like CLAW.'; return; }
     const c2=crew();
-    if(c2&&c2.code===code){ location.href=location.pathname+'?watch='+encodeURIComponent(code); return; }
-    if(m) m.textContent='Checking…';
-    if(c2){
-      // watching another table's game shouldn't switch this phone's own crew
-      try{ const r=await fetch(`${SUPA_URL}/rest/v1/tables?code=eq.${encodeURIComponent(code)}&select=code`,{headers:sbHeaders()});
-        const a=r.ok?await r.json():[];
-        if(!a.length){ if(m) m.textContent='Code not found — double-check it with whoever created it.'; return; }
-      }catch(e){ if(m) m.textContent='Couldn’t reach the sync server — try again.'; return; }
-    } else {
-      const okj=await joinCrew(code);
-      if(!okj){ if(m) m.textContent='Code not found — double-check it with whoever created it.'; return; }
+    if(!(c2&&c2.code===code)){
+      if(m) m.textContent='Checking…';
+      if(!(await codeExists(code))){ if(m) m.textContent='Code not found — double-check it with the scorekeeper.'; return; }
     }
     location.href=location.pathname+'?watch='+encodeURIComponent(code);
   };
@@ -1077,8 +1075,7 @@ function renderModal(){
   if(cj) cj.onclick=doJoin;
   const ci=document.getElementById('crewcode');
   if(ci) ci.onkeydown=e=>{ if(e.key==='Enter') doJoin(); };
-  const cl=document.getElementById('m_crewleave');
-  if(cl) cl.onclick=()=>{ if(confirm('Leave this Claw Watch crew? Synced games stay in the cloud; this phone just stops syncing.')){ setCrew(null); cloudGames=null; render(); } };
+
   const sa=document.getElementById('m_shareapp');
   if(sa) sa.onclick=async()=>{
     const url=location.origin+location.pathname;
@@ -1087,13 +1084,15 @@ function renderModal(){
     else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('App link copied — text it to the table:\n'+url); }catch(e){ alert('App link:\n'+url); } }
     else alert('App link:\n'+url);
   };
-  const sc=document.getElementById('m_sharecode');
-  if(sc) sc.onclick=async()=>{ const c2=crew(); if(!c2) return;
-    const url=location.origin+location.pathname+'?watch='+encodeURIComponent(c2.code);
-    const text=`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`;
-    if(navigator.share){ try{ await navigator.share({title:'Lobster Dice — Claw Watch',text,url}); }catch(e){} }
-    else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(text+' '+url); alert('Copied — text it to the table.'); }catch(e){ alert(text+' '+url); } }
-    else alert(text+' '+url); };
+  const cb2=document.getElementById('m_codebox');
+  if(cb2){ const shareCode=async()=>{ const c2=crew(); if(!c2) return;
+      const url=location.origin+location.pathname+'?watch='+encodeURIComponent(c2.code);
+      const text=`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`;
+      if(navigator.share){ try{ await navigator.share({title:'Lobster Dice — Claw Watch',text,url}); }catch(e){} }
+      else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(text+' '+url); alert('Copied — text it to the table.'); }catch(e){ alert(text+' '+url); } }
+      else alert(text+' '+url); };
+    cb2.onclick=shareCode;
+    cb2.onkeydown=e=>{ if(e.key==='Enter') shareCode(); }; }
 
   const f=document.getElementById('m_finish'); if(f) f.onclick=()=>{ modal=null; finalize(); };
   const nw=document.getElementById('m_new'); if(nw) nw.onclick=()=>{ if(confirm('Scrap this game and start over?')){ wipe(); S=null; modal=null; newSetup(); render(); } };
@@ -1186,6 +1185,7 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
   const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
   keepAwake();   // resume screen lock protection if a game was in progress
   trySync();   // push any games that finished offline
+  ensureCrew();   // every player owns an always-on Claw Watch code
   if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
 })();
 </script>
