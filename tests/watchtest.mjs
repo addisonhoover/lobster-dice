@@ -68,6 +68,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const t = document.body.textContent;
   ok('watcher sees the live leaderboard', t.includes('Claw Watch CLAW') && t.includes('Addison') && t.includes('82'));
   ok('watcher sees who is rolling + turn total', t.includes('Kelsey is rolling') && t.includes('+18'));
+  ok('projection: would-be total shown', t.includes('58'));
+  ok('projection: gap context shown', t.includes('24 behind Addison'));
   ok('fire + zero-warning visible to watchers', !!document.querySelector('.score.fire') && !!document.querySelector('.warn0'));
   ok('no input controls for watchers', !document.querySelector('#bank') && !document.querySelector('.rc'));
   ok('live view has a way home', !!document.querySelector('#watchback'));
@@ -110,6 +112,48 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   ok('watcher sees payouts incl. zero doubler', t.includes('Settle up') && t.includes('ZERO DOUBLER') && t.includes('$224'));
   ok('watcher sees tonight ledger', t.includes('Tonight') && t.includes('1 game'));
   ok('stale games excluded from tonight ledger', !t.includes('MarchGuy'));
+}
+
+// ---------- dense board for big tables ----------
+{
+  const bigRow = {
+    updated_at: new Date().toISOString(),
+    state: { phase:'playing', stake:1, cur:0, accrual:5, endgame:null,
+      players: Array.from({length:8},(_,i)=>({name:'P'+(i+1), banked:i*10, busts:0, dubs:0})) }
+  };
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', url: 'http://localhost:8321/?watch=CLAW',
+    beforeParse(window) {
+      window.fetch = async (url) => String(url).includes('/rest/v1/live')
+        ? { ok:true, status:200, json: async () => [bigRow] }
+        : { ok:true, status:200, json: async () => [] };
+    }
+  });
+  await sleep(120);
+  const d = dom.window.document;
+  ok('8 players get the dense two-column board', !!d.querySelector('.sb.sb-dense') && d.querySelectorAll('.sb-dense .p').length === 8);
+}
+
+// ---------- stale "live" data is not presented as live ----------
+{
+  const staleRow = {
+    updated_at: new Date(Date.now() - 7 * 86400e3).toISOString(),
+    state: { phase:'playing', stake:1, cur:0, accrual:29, endgame:null,
+      players: [{name:'Addison',banked:82},{name:'Kelsey',banked:40}] }
+  };
+  const dom = new JSDOM(html, {
+    runScripts: 'dangerously', url: 'http://localhost:8321/?watch=CLAW',
+    beforeParse(window) {
+      window.fetch = async (url) => String(url).includes('/rest/v1/live')
+        ? { ok:true, status:200, json: async () => [staleRow] }
+        : { ok:true, status:200, json: async () => [] };
+    }
+  });
+  await sleep(120);
+  const t2 = dom.window.document.querySelector('#app').textContent;
+  ok('stale board says idle, not LIVE', t2.includes('idle') && !t2.includes('LIVE'));
+  ok('timestamp humanized (7d ago, not raw seconds)', t2.includes('7d ago') && !t2.includes('604800'));
+  ok('no phantom "is rolling" on stale data', !t2.includes('is rolling') && t2.includes('isn’t broadcasting'));
 }
 
 // ---------- waiting state ----------

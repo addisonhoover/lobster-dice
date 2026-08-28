@@ -25,6 +25,7 @@ click(q('#start'));
 // everyone banks 75 on their first turn (11x6+9)
 for (let i = 0; i < 5; i++) { chips(11, 11, 11, 11, 11, 11, 9); bank(); }
 ok('all five at 75', [...document.querySelectorAll('.score')].every(s => s.textContent.includes('75')));
+ok('5 players get the compact board', !!q('.sb.sb-compact'));
 
 // A: +26 -> 101, banks -> endgame. Queue: B,C,D,E
 ok('A is up', who().includes('A'));
