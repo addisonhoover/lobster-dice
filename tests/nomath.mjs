@@ -43,7 +43,7 @@ face(0, 4);
 ok('one face selected, nothing scored yet', q('.accrual .big').textContent.startsWith('0') && q('[data-nm-col="0"][data-nm-face="4"]').classList.contains('on'));
 face(1, 5);
 ok('4+5 feeds adder as 9', q('.accrual .big').textContent.startsWith('9') && q('.msg').textContent.includes('turn total 9'));
-ok('mixed numbers do not lock', !q('.gate') && q('#bank').disabled === true); // gate, not double
+ok('mixed numbers do not lock', q('#bank').disabled === true && q('.gate').textContent.includes('21') && !q('.msg').textContent.includes('double'));
 ok('faces reset after both entered', !q('.nmwrap .rc.on'));
 
 face(0, 3); face(1, 3);
