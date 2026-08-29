@@ -21,7 +21,7 @@ Optional **crew sync** adds a Supabase backend (`supabase/*.sql`): finished game
 ```bash
 npm install        # test dependencies only (jsdom)
 npm run serve      # local server at http://localhost:8321
-npm test           # 7 suites, 134 assertions, drives the real DOM headlessly via jsdom
+npm test           # 8 suites, drives the real DOM headlessly via jsdom
 npm run deploy     # ship to production (Vercel)
 ```
 
@@ -38,6 +38,7 @@ npm run deploy     # ship to production (Vercel)
 | `tests/seriestest.mjs` | splash, branding, multi-game series ledger + minimal-payment settle |
 | `tests/synctest.mjs` | crew sync: outbox queueing, upload, shared history merge |
 | `tests/watchtest.mjs` | live watch mode: broadcast state, watcher rendering, endgame dismount |
+| `tests/nomath.mjs` | No Math Mode: setup toggle, two-face picker, doubles lock, lobster paths |
 
 ## License
 

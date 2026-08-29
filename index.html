@@ -130,6 +130,11 @@
   .rollchips{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
   .rc{padding:17px 0;border-radius:14px;background:var(--card2);border:1px solid var(--line);font-size:20px;font-weight:900;color:var(--ink);transition:transform .05s}
   .rc:active{transform:scale(.95);background:linear-gradient(180deg,#54e0d9,#28b3ab);color:#04201e}
+  .rc.on{background:linear-gradient(180deg,#54e0d9,#28b3ab);color:#04201e;border-color:transparent}
+  .nmwrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .nmlab{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:6px}
+  .nmcol{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .nmcol .rc{padding:13px 0;font-size:18px}
   .plus{display:inline-block;font-size:30px;font-weight:900;color:var(--good);vertical-align:super;margin-left:7px;-webkit-text-fill-color:var(--good);animation:pluspop .25s ease-out}
   @keyframes pluspop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
   .endlink{display:block;width:100%;background:none;border:none;color:#8499bb;font-size:12px;font-weight:700;padding:10px;margin-top:2px;text-align:center}
@@ -328,6 +333,8 @@ const STAKES=[0.01,0.10,0.15,0.25,1,5,10,100];
 
 /* ============================ STATE ============================ */
 let S=null, history=[], modal=null, entryPts='';
+let nmFaces=[null,null];
+function resetNm(){ nmFaces=[null,null]; }
 const app=document.getElementById('app'), foot=document.getElementById('foot');
 document.getElementById('rulesBtn').onclick=()=>{ modal={type:'rules'}; render(); };
 document.getElementById('histBtn').onclick=()=>{ modal={type:'history'}; render(); refreshCloud(); };
@@ -651,7 +658,7 @@ function settleNets(nets){
 }
 
 function snapshot(){ history.push(JSON.stringify({S,entryPts})); if(history.length>60) history.shift(); }
-function undo(){ if(!history.length) return; const p=JSON.parse(history.pop()); S=p.S; entryPts=p.entryPts; flash('Undid last action.',''); render(); }
+function undo(){ if(!history.length) return; const p=JSON.parse(history.pop()); S=p.S; entryPts=p.entryPts; resetNm(); flash('Undid last action.',''); render(); }
 function clearHistory(){ history=[]; }
 
 /* ============================ SETUP ============================ */
@@ -659,8 +666,8 @@ const LSETUP='lobsterDice.lastSetup';
 let draft=null;
 function newSetup(){
   let last=null; try{ const r=localStorage.getItem(LSETUP); last=r?JSON.parse(r):null; }catch(e){}
-  draft=last?{names:[...last.names],stake:last.stake,customStake:last.customStake||'',liability:!!last.liability,rematch:true}
-            :{names:['','','',''],stake:1,customStake:'',liability:false};
+  draft=last?{names:[...last.names],stake:last.stake,customStake:last.customStake||'',liability:!!last.liability,noMath:!!last.noMath,rematch:true}
+            :{names:['','','',''],stake:1,customStake:'',liability:false,noMath:false};
 }
 
 function renderSetup(){
@@ -668,7 +675,7 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.8 · app design by addison hoover';
+  foot.textContent='v4.9 · app design by addison hoover';
   app.innerHTML=`
     <div class="card">
       <div class="label">Players <span style="color:#8fa2c2;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
@@ -688,6 +695,12 @@ function renderSetup(){
       <div class="toggle" id="liabTog">
         <div>Show live “what I’d owe” during play<br><span style="font-size:11px;color:#8fa2c2">optional · some tables find it stressful</span></div>
         <div class="sw ${d.liability?'on':''}"><i></i></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="toggle" id="noMathTog">
+        <div>No Math Mode<br><span style="font-size:11px;color:#8fa2c2">tap the two dice faces instead of adding</span></div>
+        <div class="sw ${d.noMath?'on':''}"><i></i></div>
       </div>
     </div>
     <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
@@ -710,6 +723,7 @@ function renderSetup(){
   document.querySelectorAll('#stakes .chip').forEach(c=>c.onclick=()=>{ d.stake=Number(c.dataset.s); d.customStake=''; renderSetup(); });
   document.getElementById('custom').oninput=e=>{ d.customStake=e.target.value; document.querySelectorAll('#stakes .chip').forEach(x=>x.classList.remove('on')); };
   document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
+  document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
   document.getElementById('start').onclick=startGame;
 }
 
@@ -717,11 +731,11 @@ function startGame(){
   const d=draft;
   const names=d.names.map(n=>n.trim()).filter(Boolean);
   const stake=Number(d.customStake!==''?d.customStake:d.stake)||0;
-  try{ localStorage.setItem(LSETUP, JSON.stringify({names,stake:d.stake,customStake:d.customStake,liability:d.liability})); }catch(e){}
-  S={ phase:'playing', stake, liability:d.liability, editOrder:false,
+  try{ localStorage.setItem(LSETUP, JSON.stringify({names,stake:d.stake,customStake:d.customStake,liability:d.liability,noMath:!!d.noMath})); }catch(e){}
+  S={ phase:'playing', stake, liability:d.liability, noMath:!!d.noMath, editOrder:false,
     players:names.map((n,i)=>({ id:'p'+i+'_'+(Date.now()%100000), name:n, banked:0, busts:0, dubs:0, biggest:0, log:[] })),
     cur:0, endgame:null, accrual:0, turnAdds:[], mustRoll:false };
-  clearHistory(); entryPts=''; flash('','');
+  clearHistory(); entryPts=''; resetNm(); flash('','');
   save(); render();
   keepAwake();
 }
@@ -745,19 +759,32 @@ function bankBlock(pts){
 /* ============================ TURN ACTIONS ============================ */
 function turnTotal(){ return S.accrual||0; }
 
-function doAdd(v){
+function doAdd(v, knownDouble){
+  resetNm();
   if(!(v>0)) return;
   snapshot();
   S.accrual=(S.accrual||0)+v;
   S.turnAdds.push(v);
-  S.mustRoll=(v===4||v===12)?v:false;   // 4 = only 2+2 (3+1 is a lobster), 12 = only 6+6 — doubles force a re-roll
+  S.mustRoll=(knownDouble||v===4||v===12)?v:false;   // 4/12 always doubles; No Math Mode can also see 3+3, 4+4, 5+5
   if(S.mustRoll) flash(`+${v} — that’s double ${v/2}s! Roll again.`,'warn');
   else flash(`+${v} — turn total ${S.accrual}.`,'good');
   save(); render();
 }
+function pickNoMath(col, face){
+  nmFaces[col]=nmFaces[col]===face?null:face;
+  if(nmFaces[0] && nmFaces[1]) applyNoMath(nmFaces[0], nmFaces[1]);
+  else render();
+}
+function applyNoMath(a, b){
+  resetNm();
+  if(a===1 && b===1){ doDouble(); return; }
+  if(a===1 || b===1){ doLobster(); return; }
+  doAdd(a+b, a===b);
+}
 function doBank(){
   const pts=turnTotal();
   const block=bankBlock(pts); if(block) return;
+  resetNm();
   snapshot();
   const p=P(), amt=S.accrual;
   p.banked+=amt; if(amt>p.biggest) p.biggest=amt;
@@ -766,6 +793,7 @@ function doBank(){
   advance(true);
 }
 function doLobster(){
+  resetNm();
   snapshot();
   const p=P(); p.busts++; const lost=turnTotal();
   p.log.push({t:'lobster',lost});
@@ -773,6 +801,7 @@ function doLobster(){
   advance(false);
 }
 function doDouble(){
+  resetNm();
   snapshot();
   const p=P(); p.dubs++; const had=p.banked; p.banked=0;
   p.log.push({t:'double',from:had});
@@ -890,9 +919,12 @@ function renderGame(){
       </div>
       <div class="msg ${msgClass}">${msg|| (gateActive(p)?`Tap each roll as it lands (bank once the turn hits ${GATE}+).`:'Tap each roll as it lands, then Bank.')}</div>
 
-      <div class="rollchips">
+      ${S.noMath?`<div class="nmwrap">${[0,1].map(col=>`<div>
+        <div class="nmlab">die ${col+1}</div>
+        <div class="nmcol">${[1,2,3,4,5,6].map(f=>`<button class="rc ${nmFaces[col]===f?'on':''}" data-nm-col="${col}" data-nm-face="${f}">${f===1?'🦞':f}</button>`).join('')}</div>
+      </div>`).join('')}</div>`:`<div class="rollchips">
         ${[4,5,6,7,8,9,10,11,12].map(v=>`<button class="rc" data-add="${v}">${v}</button>`).join('')}
-      </div>
+      </div>`}
 
       ${block&&pts>0?`<div class="gate">⚠︎ ${block}</div>`:''}
       <button class="btn gold" id="bank" ${canBank?'':'disabled'}>💰 Bank${pts?` ${pts} → ${p.banked+pts}`:''}</button>
@@ -908,13 +940,14 @@ function renderGame(){
     <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`;
 
   // scoreboard interactions
-  document.querySelectorAll('[data-sel]').forEach(el=>{ if(el.dataset.sel!=='') el.onclick=ev=>{ if(ev.target.closest('[data-log]'))return; if(+el.dataset.sel===S.cur) return; snapshot(); S.cur=+el.dataset.sel; S.accrual=0; S.turnAdds=[]; flash(`${S.players[S.cur].name} is up.`,''); entryPts=''; save(); render(); }; });
+  document.querySelectorAll('[data-sel]').forEach(el=>{ if(el.dataset.sel!=='') el.onclick=ev=>{ if(ev.target.closest('[data-log]'))return; if(+el.dataset.sel===S.cur) return; snapshot(); S.cur=+el.dataset.sel; S.accrual=0; S.turnAdds=[]; flash(`${S.players[S.cur].name} is up.`,''); entryPts=''; resetNm(); save(); render(); }; });
   document.querySelectorAll('[data-log]').forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); modal={type:'log',i:+b.dataset.log}; render(); });
   document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>reorder(+b.dataset.up,-1));
   document.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>reorder(+b.dataset.dn,+1));
   document.getElementById('editOrder').onclick=()=>{ S.editOrder=!S.editOrder; save(); render(); };
 
   document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>doAdd(+b.dataset.add));
+  document.querySelectorAll('[data-nm-face]').forEach(b=>b.onclick=()=>pickNoMath(+b.dataset.nmCol, +b.dataset.nmFace));
   document.getElementById('bank').onclick=doBank;
   document.getElementById('lob1').onclick=doLobster;
   document.getElementById('lob2').onclick=doDouble;
