@@ -13,8 +13,8 @@ const type = (sel, val) => { const el = q(sel); el.value = val; el.dispatchEvent
 const click = el => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 const face = (col, f) => click(q(`[data-nm-col="${col}"][data-nm-face="${f}"]`));
 
-ok('setup shows No Math Mode toggle', !!q('#noMathTog') && q('#noMathTog').textContent.includes('No Math Mode'));
-ok('No Math Mode default off', !q('#noMathTog .sw.on'));
+ok('setup shows Jackson Mode toggle', !!q('#noMathTog') && q('#noMathTog').textContent.includes('Jackson Mode'));
+ok('Jackson Mode default off', !q('#noMathTog .sw.on'));
 
 type('#players input[data-i="0"]', 'Addison');
 type('#players input[data-i="1"]', 'Kelsey');
@@ -77,7 +77,7 @@ ok('lobster + lobster uses double-lobster path', q('.msg').textContent.includes(
 click(q('#menu'));
 click(q('#m_finish'));
 click(q('#again'));
-ok('rematch keeps No Math Mode on', !!q('#noMathTog .sw.on'));
+ok('rematch keeps Jackson Mode on', !!q('#noMathTog .sw.on'));
 const last = JSON.parse(window.localStorage.getItem('lobsterDice.lastSetup') || '{}');
 ok('setup persist includes noMath', last.noMath === true);
 

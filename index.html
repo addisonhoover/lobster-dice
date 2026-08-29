@@ -675,7 +675,7 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.9 · app design by addison hoover';
+  foot.textContent='v4.9.1 · app design by addison hoover';
   app.innerHTML=`
     <div class="card">
       <div class="label">Players <span style="color:#8fa2c2;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
@@ -699,7 +699,7 @@ function renderSetup(){
     </div>
     <div class="card">
       <div class="toggle" id="noMathTog">
-        <div>No Math Mode<br><span style="font-size:11px;color:#8fa2c2">tap the two dice faces instead of adding</span></div>
+        <div>Jackson Mode<br><span style="font-size:11px;color:#8fa2c2">tap the two dice faces instead of adding</span></div>
         <div class="sw ${d.noMath?'on':''}"><i></i></div>
       </div>
     </div>
