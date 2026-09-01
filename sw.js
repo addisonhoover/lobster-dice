@@ -1,12 +1,16 @@
-/* Lobster Dice service worker — offline app shell (cache-first) */
-const CACHE = 'lobster-dice-v8';
+/* Lobster Dice / Crimson Dice service worker — offline app shell (cache-first) */
+const CACHE = 'lobster-dice-v9';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './crimson/manifest.webmanifest',
+  './activity.html',
   './apple-touch-icon.png',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './crimson/icon-192.png',
+  './crimson/icon-512.png'
 ];
 
 self.addEventListener('install', e => {

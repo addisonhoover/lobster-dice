@@ -6,6 +6,8 @@
 
 **Live app:** https://lobster-dice.vercel.app · app design by addison hoover
 
+**Crimson Dice** is a path skin of this same app (not a second project). `/` stays Lobster Dice. `/crimson` and `/crimson/01`…`/crimson/25` load the crimson/white theme, elephant pip, and kit tracking. Owner roster: `/crimson/activity` (needs `CRIMSON_OWNER_KEY` + `SUPABASE_SERVICE_ROLE_KEY` — see the PR). Apply `supabase/crimson.sql` on the existing Supabase project. Printable pouch QRs: `kits/qr/sheet.html`.
+
 ## The game in one paragraph
 
 Two dice whose 1-faces are lobsters (🦞, 2–6). Keep rolling to build a turn total, then bank it — one lobster wipes the turn, two lobsters wipe your whole banked score. You can't get on the board until you bank 21+ in a single turn, no one may ever stop on exactly 69, and doubles force a re-roll (4 and 12 are *always* doubles, so the app auto-forces those). First to bank 101+ becomes the leader; the dice keep going around the table and the game ends the moment they'd return to the current leader — ties with the leader are illegal, and every lead change gives everyone else one more turn. Winner collects stake × point-gap from each opponent; anyone finishing on 0 pays double.
@@ -39,6 +41,7 @@ npm run deploy     # ship to production (Vercel)
 | `tests/synctest.mjs` | crew sync: outbox queueing, upload, shared history merge |
 | `tests/watchtest.mjs` | live watch mode: broadcast state, watcher rendering, endgame dismount |
 | `tests/nomath.mjs` | No Math Mode: setup toggle, two-face picker, doubles lock, lobster paths |
+| `tests/crimsontest.mjs` | Crimson path/kit detection, elephant copy, lobster `/` unchanged |
 
 ## License
 
