@@ -271,7 +271,8 @@
     background:radial-gradient(900px 600px at 80% -10%, #c42b44 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2b2b2b 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
   }
   html.skin-crimson .sp-title{background:linear-gradient(90deg,#fff,#f7d4d8 40%,#fff);-webkit-background-clip:text;background-clip:text}
-  html.skin-crimson .sp-ele{position:absolute;left:4vw;top:28vh;height:130vh;width:auto;
+  html.skin-crimson .sp-ele{position:absolute;left:2vw;top:22vh;height:70vh;width:auto;max-width:92vw;
+    object-fit:contain;
     filter:drop-shadow(0 0 60px rgba(255,255,255,.22));
     animation:spLob .7s ease-out both}
   html.skin-crimson .sp-lob{display:none}
@@ -281,6 +282,11 @@
   html.skin-crimson .btn{box-shadow:0 8px 20px rgba(158,27,50,.4)}
   html.skin-crimson .p.active{border-color:#fff;background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(158,27,50,.12));box-shadow:0 0 0 1px rgba(255,255,255,.3)}
   html.skin-crimson .rc:active,html.skin-crimson .rc.on{background:linear-gradient(180deg,#fff,#f0e6e6);color:#6B1222;border-color:transparent}
+  html.skin-crimson .top .logo{width:36px;height:36px;padding:0;display:grid;place-items:center}
+  html.skin-crimson .top .logo img{width:36px;height:36px;object-fit:contain;display:block}
+  .ele-pip{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
+  .nmcol .ele-pip{width:26px;height:26px;display:block;margin:0 auto}
+  .lobrow .ele-pip{width:18px;height:18px;margin:0 4px -3px 0}
 </style>
 </head>
 <body>
@@ -352,18 +358,7 @@
 <path style="fill:#A42615;" d="M33.3,39.78c0.92-0.05,3.8,0.42,3.73-1.55s-3.73-1.55-4.36-1.55c-0.63,0-2.75,0.35-2.75,1.76
 	S31.9,39.85,33.3,39.78z"/>
   </g></svg>
-  <svg class="sp-ele" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><g id="eleArt">
-    <ellipse cx="78" cy="62" rx="34" ry="24" fill="#d8d2cc"/>
-    <ellipse cx="42" cy="54" rx="20" ry="17" fill="#cfc8c2"/>
-    <ellipse cx="54" cy="48" rx="16" ry="20" fill="#b7b0aa"/>
-    <path d="M28 58c-12 8-16 22-12 32c2 6-2 10 5 11c5 1 6-4 5-8c-2-8 3-15 10-19c3-2 4-6 2-8c-2-3-6-6-10-8z" fill="#c4bdb6"/>
-    <rect x="58" y="78" width="9" height="26" rx="4" fill="#9e9892"/>
-    <rect x="70" y="80" width="8" height="24" rx="4" fill="#8f8984"/>
-    <rect x="82" y="78" width="9" height="26" rx="4" fill="#9e9892"/>
-    <rect x="94" y="76" width="8" height="24" rx="4" fill="#8f8984"/>
-    <path d="M108 54c8 2 12 0 15-6" fill="none" stroke="#c4bdb6" stroke-width="3.2" stroke-linecap="round"/>
-    <circle cx="36" cy="50" r="2.1" fill="#2a2422"/>
-  </g></svg>
+  <img class="sp-ele" id="eleArt" src="/crimson/elephant-flat.png" alt="">
   <div class="sp-title">Lobster<br>Dice</div>
   <div class="sp-dice sp-d1"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="dieG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dde6f8"/></linearGradient></defs>
@@ -376,7 +371,7 @@
   </svg></div>
   <div class="sp-dice sp-d2 sp-d2-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
-    <use href="#eleArt" transform="translate(8,10) scale(0.36)"/>
+    <image href="/crimson/elephant-flat.png" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
 </div>
 <div class="wrap">
@@ -435,7 +430,8 @@ function detectSkin(){
 const SKIN=detectSkin();
 window.SKIN=SKIN;
 window.parseKit=parseKit;
-function L(s){
+const ELE_WHITE='<img class="ele-pip" src="/crimson/elephant-white.png" alt="elephant">';
+function L(s, plain){
   if(s==null||SKIN.id!=='crimson') return s;
   return String(s)
     .replace(/Lobster Dice/g,'Crimson Dice')
@@ -450,8 +446,8 @@ function L(s){
     .replace(/A lobster/g,'An elephant')
     .replace(/lobster/g,'elephant')
     .replace(/Lobster/g,'Elephant')
-    .replace(/🦞🦞/g,'🐘🐘')
-    .replace(/🦞/g,'🐘');
+    .replace(/🦞🦞/g, plain ? '' : ELE_WHITE+ELE_WHITE)
+    .replace(/🦞/g, plain ? '' : ELE_WHITE);
 }
 function applySkinChrome(){
   if(SKIN.id!=='crimson') return;
@@ -462,7 +458,8 @@ function applySkinChrome(){
   const man=document.querySelector('link[rel="manifest"]'); if(man) man.setAttribute('href','/crimson/manifest.webmanifest');
   const icon=document.querySelector('link[rel="icon"]'); if(icon) icon.setAttribute('href','/crimson/icon-192.png');
   const apple=document.querySelector('link[rel="apple-touch-icon"]'); if(apple) apple.setAttribute('href','/crimson/icon-192.png');
-  const logo=document.querySelector('.top .logo'); if(logo) logo.textContent='🐘';
+  const logo=document.querySelector('.top .logo');
+  if(logo) logo.innerHTML='<img src="/crimson/elephant-white.png" alt="">';
   const h1=document.querySelector('.top h1'); if(h1) h1.textContent='Crimson Dice';
   const sp=document.querySelector('.sp-title'); if(sp) sp.innerHTML='Crimson<br>Dice';
 }
@@ -706,7 +703,7 @@ async function fetchWatch(){
   if(st&&st.phase==='playing') keepAwake(); else releaseAwake();   // watchers stay awake only while the game is live
   render();
 }
-function startWatch(){ foot.textContent=L('🦞 Claw Watch · '+WATCH); fetchWatch(); setInterval(fetchWatch,4000); }
+function startWatch(){ foot.textContent=L('🦞 Claw Watch · '+WATCH, true); fetchWatch(); setInterval(fetchWatch,4000); }
 function renderWatch(){
   const st=watchData&&watchData.state;
   const backBtn=`<button class="btn ghost sm" id="watchback" style="margin-top:4px">← Back to the app</button>`;
@@ -1309,7 +1306,7 @@ function renderModal(){
   const sa=document.getElementById('m_shareapp');
   if(sa) sa.onclick=async()=>{
     const url=location.origin+(SKIN.id==='crimson'?(SKIN.kit?'/crimson/'+SKIN.kit:'/crimson'):location.pathname);
-    const text=L('Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:');
+    const text=L('Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:', true);
     if(navigator.share){ try{ await navigator.share({title:L('Lobster Dice'),text,url}); }catch(e){} }
     else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('App link copied — text it to the table:\n'+url); }catch(e){ alert('App link:\n'+url); } }
     else alert('App link:\n'+url);

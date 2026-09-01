@@ -1,5 +1,5 @@
 /* Lobster Dice / Crimson Dice service worker — offline app shell (cache-first) */
-const CACHE = 'lobster-dice-v9';
+const CACHE = 'lobster-dice-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -10,7 +10,10 @@ const ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './crimson/icon-192.png',
-  './crimson/icon-512.png'
+  './crimson/icon-512.png',
+  './crimson/elephant-flat.png',
+  './crimson/elephant-white.png',
+  './crimson/elephant-shaded.png'
 ];
 
 self.addEventListener('install', e => {

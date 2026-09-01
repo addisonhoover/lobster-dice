@@ -42,8 +42,19 @@ function q(doc, s) { return doc.querySelector(s); }
   ok(' /crimson/17 kit 17', window.SKIN.kit === '17');
   ok(' /crimson/17 title is Crimson Dice', document.title.includes('Crimson Dice'));
   ok(' /crimson/17 splash says Crimson', q(document, '.sp-title').textContent.includes('Crimson') && !q(document, '.sp-title').textContent.includes('Lobster'));
-  ok(' /crimson/17 elephant art present', !!q(document, '#eleArt') && !!q(document, '.sp-ele'));
-  ok(' /crimson/17 header elephant', q(document, '.top .logo').textContent.includes('🐘'));
+  ok(' /crimson/17 elephant art present', (() => {
+    const el = q(document, '#eleArt');
+    return el && el.tagName === 'IMG' && el.classList.contains('sp-ele') && (el.getAttribute('src') || '').includes('elephant-flat.png');
+  })());
+  ok(' /crimson/17 splash die uses flat elephant', (() => {
+    const img = q(document, '.sp-d2-ele image');
+    return img && (img.getAttribute('href') || '').includes('elephant-flat.png');
+  })());
+  ok(' /crimson/17 header elephant', (() => {
+    const img = q(document, '.top .logo img');
+    const logo = q(document, '.top .logo');
+    return img && (img.getAttribute('src') || '').includes('elephant-white.png') && !logo.textContent.includes('🐘') && !logo.textContent.includes('🦞');
+  })());
   ok(' /crimson/17 header name', q(document, '.top h1').textContent === 'Crimson Dice');
   ok(' /crimson/17 crimson theme-color', q(document, 'meta[name="theme-color"]').getAttribute('content') === '#9E1B32');
   ok(' /crimson/17 crimson manifest', q(document, 'link[rel="manifest"]').getAttribute('href').includes('crimson/manifest'));
@@ -105,8 +116,15 @@ function q(doc, s) { return doc.querySelector(s); }
   click(q(document, '#start'));
   ok(' crimson Jackson columns exist', document.querySelectorAll('[data-nm-col="0"]').length === 6);
   const face1 = q(document, '[data-nm-col="0"][data-nm-face="1"]');
-  ok(' crimson face 1 is elephant not lobster', face1 && face1.textContent.includes('🐘') && !face1.textContent.includes('🦞'));
-  ok(' crimson wipe button says Elephant', q(document, '#lob1').textContent.includes('Elephant') && !q(document, '#lob1').textContent.includes('Lobster'));
+  ok(' crimson face 1 is elephant not lobster', (() => {
+    const img = face1 && face1.querySelector('img.ele-pip');
+    return img && (img.getAttribute('src') || '').includes('elephant-white.png') && !face1.textContent.includes('🦞') && !face1.textContent.includes('🐘');
+  })());
+  ok(' crimson wipe button says Elephant', (() => {
+    const btn = q(document, '#lob1');
+    const img = btn && btn.querySelector('img.ele-pip');
+    return btn && btn.textContent.includes('Elephant') && !btn.textContent.includes('Lobster') && img && (img.getAttribute('src') || '').includes('elephant-white.png') && !btn.textContent.includes('🐘');
+  })());
   click(q(document, '[data-nm-col="0"][data-nm-face="1"]'));
   click(q(document, '[data-nm-col="1"][data-nm-face="4"]'));
   ok(' crimson single wipe says elephant', document.querySelector('.msg').textContent.includes('Elephant') && !document.querySelector('.msg').textContent.includes('Lobster'));
