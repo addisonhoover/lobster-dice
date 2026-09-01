@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#9E1B32" />
+<meta name="robots" content="noindex" />
+<title>Crimson Dice — kit activity</title>
+<style>
+  :root{
+    --crimson:#9E1B32; --deep:#6B1222; --char:#1c1c1c; --ink:#fff; --muted:#d4c4c6; --line:rgba(255,255,255,.16);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:linear-gradient(160deg,#6B1222,#9E1B32 50%,#1c1c1c);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;min-height:100vh}
+  .wrap{max-width:520px;margin:0 auto;padding:18px 16px 48px;padding-top:calc(16px + env(safe-area-inset-top))}
+  h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13px;font-weight:600;margin-bottom:16px}
+  .card{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px}
+  input{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.28);color:#fff;font-size:16px;font-weight:700}
+  button{font-family:inherit;border:none;cursor:pointer;font-weight:800}
+  .btn{width:100%;padding:14px;border-radius:14px;font-size:16px;background:#fff;color:var(--deep);margin-top:10px}
+  .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid var(--line)}
+  .hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+  .err{color:#ffd0d0;font-size:13px;font-weight:700;margin-top:8px}
+  .totals{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+  .stat{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+  .stat b{display:block;font-size:22px}
+  .stat span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:800}
+  .kit{display:flex;gap:12px;align-items:flex-start}
+  .num{width:44px;height:44px;border-radius:12px;background:#fff;color:var(--deep);display:grid;place-items:center;font-weight:900;font-size:16px;flex:0 0 44px}
+  .num.off{background:rgba(255,255,255,.12);color:var(--muted)}
+  .meta{flex:1;min-width:0}
+  .row1{display:flex;justify-content:space-between;gap:8px;align-items:center;font-weight:800}
+  .pill{font-size:10px;font-weight:900;letter-spacing:.06em;padding:3px 7px;border-radius:999px}
+  .pill.on{background:#fff;color:var(--deep)}
+  .pill.off{background:rgba(255,255,255,.12);color:var(--muted)}
+  .det{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45;font-weight:600}
+  .det b{color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Crimson Dice</h1>
+  <div class="sub">Kit activity · pouches 01–25</div>
+  <div id="app"></div>
+</div>
+<script>
+const KEY='crimsonDice.ownerKey';
+const app=document.getElementById('app');
+
+function savedKey(){ try{ return sessionStorage.getItem(KEY)||''; }catch(e){ return ''; } }
+function saveKey(k){ try{ sessionStorage.setItem(KEY,k); }catch(e){} }
+
+function gate(err){
+  app.innerHTML=`<div class="card">
+    <div style="font-size:13px;font-weight:800;margin-bottom:8px">Owner code</div>
+    <input id="code" type="password" placeholder="CRIMSON_OWNER_KEY" autocomplete="off">
+    <button class="btn" id="go">Open roster</button>
+    ${err?`<div class="err">${err}</div>`:''}
+    <div class="hint">Players never see this page. Set <b>CRIMSON_OWNER_KEY</b> on the Vercel project, then type that same code here.</div>
+  </div>`;
+  document.getElementById('go').onclick=()=>{
+    const v=(document.getElementById('code').value||'').trim();
+    if(!v) return;
+    saveKey(v); load();
+  };
+  document.getElementById('code').onkeydown=e=>{ if(e.key==='Enter') document.getElementById('go').click(); };
+}
+
+function ago(iso){
+  if(!iso) return '—';
+  const ms=Date.now()-Date.parse(iso);
+  if(!(ms>=0)) return iso;
+  const s=Math.round(ms/1000);
+  if(s<90) return s+'s ago';
+  const m=Math.round(s/60); if(m<90) return m+'m ago';
+  const h=Math.round(m/60); if(h<36) return h+'h ago';
+  return Math.round(h/24)+'d ago';
+}
+
+function render(data){
+  const t=data.totals||{};
+  const rows=(data.kits||[]).map(k=>{
+    const who=[k.name,k.email].filter(Boolean).join(' · ')||'no name yet';
+    return `<div class="card"><div class="kit">
+      <div class="num ${k.opened?'':'off'}">${k.kit}</div>
+      <div class="meta">
+        <div class="row1"><span>Pouch ${k.kit}</span><span class="pill ${k.opened?'on':'off'}">${k.opened?'OPENED':'UNOPENED'}</span></div>
+        <div class="det">
+          <b>${k.opens}</b> open${k.opens===1?'':'s'} · <b>${k.returns}</b> return${k.returns===1?'':'s'} · <b>${k.games}</b> game${k.games===1?'':'s'}<br>
+          last seen ${ago(k.last_seen)}<br>${who}
+        </div>
+      </div>
+    </div></div>`;
+  }).join('');
+  app.innerHTML=`
+    <div class="totals">
+      <div class="stat"><b>${t.opened||0}</b><span>opened</span></div>
+      <div class="stat"><b>${t.opens||0}</b><span>visits</span></div>
+      <div class="stat"><b>${t.games||0}</b><span>games</span></div>
+    </div>
+    ${rows}
+    <button class="btn ghost" id="out">Lock</button>
+    <div class="hint">Refreshes each visit. Names/emails only if a player offered them.</div>`;
+  document.getElementById('out').onclick=()=>{ try{ sessionStorage.removeItem(KEY); }catch(e){} gate(); };
+}
+
+async function load(){
+  const key=savedKey();
+  if(!key){ gate(); return; }
+  app.innerHTML=`<div class="card"><div class="hint">Loading roster…</div></div>`;
+  try{
+    const r=await fetch('/api/crimson-activity',{headers:{Authorization:'Bearer '+key,'x-owner-key':key}});
+    if(r.status===401){ try{ sessionStorage.removeItem(KEY); }catch(e){} gate('Wrong owner code.'); return; }
+    const data=await r.json();
+    if(!r.ok){
+      gate(data.hint||data.error||'Could not load activity.');
+      return;
+    }
+    render(data);
+  }catch(e){
+    gate('Network error — try again.');
+  }
+}
+load();
+</script>
+</body>
+</html>

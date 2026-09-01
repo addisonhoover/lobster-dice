@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/crimson/activity", "destination": "/activity.html" },
+    { "source": "/crimson", "destination": "/index.html" },
+    { "source": "/crimson/:kit", "destination": "/index.html" }
+  ]
+}

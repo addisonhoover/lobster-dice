@@ -12,6 +12,23 @@
 <meta name="apple-mobile-web-app-title" content="Lobster Dice" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="icon" href="icon-192.png" type="image/png" />
+<script>
+(function(){
+  var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
+  var q=new URLSearchParams(location.search||'');
+  var home=p==='/'||p==='/index.html';
+  var crimson=(!home&&/^\/crimson(?:\/\d{1,2})?$/i.test(p))||(q.get('skin')||'').toLowerCase()==='crimson';
+  if(!crimson&&!home){
+    try{var s=JSON.parse(sessionStorage.getItem('crimsonDice.session')||localStorage.getItem('crimsonDice.session')||'null');crimson=!!(s&&s.id==='crimson');}catch(e){}
+  }
+  if(!crimson) return;
+  document.documentElement.classList.add('skin-crimson');
+  var m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content','#9E1B32');
+  var a=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(a) a.setAttribute('content','Crimson Dice');
+  var man=document.querySelector('link[rel="manifest"]'); if(man) man.setAttribute('href','/crimson/manifest.webmanifest');
+  document.title='Crimson Dice — Scorepad';
+})();
+</script>
 <style>
   :root{
     --bg1:#0b1f3a; --bg2:#12325c; --bg3:#1b0e2b;
@@ -228,6 +245,48 @@
     86%{transform:translate(.4vw,-16px) rotate(-18deg)}
     94%{transform:translate(0,2px) rotate(6deg)}
     100%{transform:translate(0,0) rotate(11deg)}}
+  /* Crimson Dice skin — deep crimson / white / charcoal (color theme only) */
+  html.skin-crimson{
+    --bg1:#6B1222; --bg2:#9E1B32; --bg3:#1c1c1c;
+    --card:rgba(255,255,255,.08); --card2:rgba(255,255,255,.12);
+    --line:rgba(255,255,255,.16);
+    --coral:#9E1B32; --coral2:#c42b44; --gold:#f5f0e8;
+    --sea:#c42b44; --good:#e8e8e8; --bad:#ff8a8a; --warn:#f5e6c8;
+    --ink:#ffffff; --muted:#d4c4c6;
+    background:#6B1222 linear-gradient(160deg,#6B1222,#9E1B32 45%,#1c1c1c);
+  }
+  html.skin-crimson body{
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #c42b44 0%, transparent 55%),
+      radial-gradient(900px 600px at 0% 110%, #2b2b2b 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-crimson .top h1{background:linear-gradient(90deg,#fff,#f7d4d8 55%,#fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  html.skin-crimson .top .logo{filter:drop-shadow(0 4px 8px rgba(255,255,255,.25))}
+  html.skin-crimson .accrual .big{background:linear-gradient(180deg,#fff,#f0d0d4);-webkit-background-clip:text;background-clip:text}
+  html.skin-crimson .modal{background:linear-gradient(160deg,#7a1526,#1c1c1c)}
+  html.skin-crimson .modal .rul{color:#f0e4e6}
+  html.skin-crimson input::placeholder{color:#c4a8ac}
+  html.skin-crimson #splash{
+    background:radial-gradient(900px 600px at 80% -10%, #c42b44 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2b2b2b 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-crimson .sp-title{background:linear-gradient(90deg,#fff,#f7d4d8 40%,#fff);-webkit-background-clip:text;background-clip:text}
+  html.skin-crimson .sp-ele{position:absolute;left:2vw;top:22vh;height:70vh;width:auto;max-width:92vw;
+    object-fit:contain;
+    filter:drop-shadow(0 0 60px rgba(255,255,255,.22));
+    animation:spLob .7s ease-out both}
+  html.skin-crimson .sp-lob{display:none}
+  html:not(.skin-crimson) .sp-ele{display:none}
+  html.skin-crimson .sp-d2-lob{display:none}
+  html:not(.skin-crimson) .sp-d2-ele{display:none}
+  html.skin-crimson .btn{box-shadow:0 8px 20px rgba(158,27,50,.4)}
+  html.skin-crimson .p.active{border-color:#fff;background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(158,27,50,.12));box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+  html.skin-crimson .rc:active,html.skin-crimson .rc.on{background:linear-gradient(180deg,#fff,#f0e6e6);color:#6B1222;border-color:transparent}
+  html.skin-crimson .top .logo{width:36px;height:36px;padding:0;display:grid;place-items:center}
+  html.skin-crimson .top .logo img{width:36px;height:36px;object-fit:contain;display:block}
+  .ele-pip{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
+  .nmcol .ele-pip{width:26px;height:26px;display:block;margin:0 auto}
+  .lobrow .ele-pip{width:18px;height:18px;margin:0 4px -3px 0}
 </style>
 </head>
 <body>
@@ -299,15 +358,20 @@
 <path style="fill:#A42615;" d="M33.3,39.78c0.92-0.05,3.8,0.42,3.73-1.55s-3.73-1.55-4.36-1.55c-0.63,0-2.75,0.35-2.75,1.76
 	S31.9,39.85,33.3,39.78z"/>
   </g></svg>
+  <img class="sp-ele" id="eleArt" src="/crimson/elephant-flat.png" alt="">
   <div class="sp-title">Lobster<br>Dice</div>
   <div class="sp-dice sp-d1"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="dieG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dde6f8"/></linearGradient></defs>
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
     <g fill="#e03a30"><circle cx="17" cy="17" r="6"/><circle cx="47" cy="17" r="6"/><circle cx="32" cy="32" r="6"/><circle cx="17" cy="47" r="6"/><circle cx="47" cy="47" r="6"/></g>
   </svg></div>
-  <div class="sp-dice sp-d2"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <div class="sp-dice sp-d2 sp-d2-lob"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
     <use href="#lobArt" transform="translate(13,11) scale(0.30)"/>
+  </svg></div>
+  <div class="sp-dice sp-d2 sp-d2-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
+    <image href="/crimson/elephant-flat.png" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
 </div>
 <div class="wrap">
@@ -330,6 +394,76 @@
 const GATE=21, NINE69=69, WIN=101, FIRE=75, STORE='lobsterDice.v2';
 const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survives crossing midnight)
 const STAKES=[0.01,0.10,0.15,0.25,1,5,10,100];
+const APP_VER='v4.10';
+
+function parseKit(s){
+  if(s==null||s==='') return null;
+  const n=parseInt(String(s),10);
+  if(n>=1&&n<=25) return String(n).padStart(2,'0');
+  return null;
+}
+function persistSkin(skin){
+  try{
+    const v=JSON.stringify(skin);
+    sessionStorage.setItem('crimsonDice.session',v);
+    localStorage.setItem('crimsonDice.session',v);
+  }catch(e){}
+}
+function detectSkin(){
+  const path=(location.pathname||'/').replace(/\/+$/,'')||'/';
+  const q=new URLSearchParams(location.search||'');
+  const qSkin=(q.get('skin')||'').toLowerCase();
+  const isHome=path==='/'||path==='/index.html';
+  if(isHome && qSkin!=='crimson') return {id:'lobster',kit:null};
+  const pm=path.match(/^\/crimson(?:\/(\d{1,2}))?$/i);
+  if(pm || qSkin==='crimson'){
+    const skin={id:'crimson',kit:parseKit((pm&&pm[1])||q.get('kit'))};
+    persistSkin(skin);
+    return skin;
+  }
+  try{
+    const raw=sessionStorage.getItem('crimsonDice.session')||localStorage.getItem('crimsonDice.session');
+    if(raw){ const s=JSON.parse(raw); if(s&&s.id==='crimson') return {id:'crimson',kit:parseKit(s.kit)}; }
+  }catch(e){}
+  return {id:'lobster',kit:null};
+}
+const SKIN=detectSkin();
+window.SKIN=SKIN;
+window.parseKit=parseKit;
+const ELE_WHITE='<img class="ele-pip" src="/crimson/elephant-white.png" alt="elephant">';
+function L(s, plain){
+  if(s==null||SKIN.id!=='crimson') return s;
+  return String(s)
+    .replace(/Lobster Dice/g,'Crimson Dice')
+    .replace(/Claw Watch/g,'Crimson Watch')
+    .replace(/double-lobster/g,'double-elephant')
+    .replace(/Double lobster/g,'Double elephant')
+    .replace(/double lobsters/g,'double elephants')
+    .replace(/double lobster/g,'double elephant')
+    .replace(/lobsters/g,'elephants')
+    .replace(/Lobsters/g,'Elephants')
+    .replace(/a lobster/g,'an elephant')
+    .replace(/A lobster/g,'An elephant')
+    .replace(/lobster/g,'elephant')
+    .replace(/Lobster/g,'Elephant')
+    .replace(/🦞🦞/g, plain ? '' : ELE_WHITE+ELE_WHITE)
+    .replace(/🦞/g, plain ? '' : ELE_WHITE);
+}
+function applySkinChrome(){
+  if(SKIN.id!=='crimson') return;
+  document.documentElement.classList.add('skin-crimson');
+  document.title='Crimson Dice — Scorepad';
+  const tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.setAttribute('content','#9E1B32');
+  const ap=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(ap) ap.setAttribute('content','Crimson Dice');
+  const man=document.querySelector('link[rel="manifest"]'); if(man) man.setAttribute('href','/crimson/manifest.webmanifest');
+  const icon=document.querySelector('link[rel="icon"]'); if(icon) icon.setAttribute('href','/crimson/icon-192.png');
+  const apple=document.querySelector('link[rel="apple-touch-icon"]'); if(apple) apple.setAttribute('href','/crimson/icon-192.png');
+  const logo=document.querySelector('.top .logo');
+  if(logo) logo.innerHTML='<img src="/crimson/elephant-white.png" alt="">';
+  const h1=document.querySelector('.top h1'); if(h1) h1.textContent='Crimson Dice';
+  const sp=document.querySelector('.sp-title'); if(sp) sp.innerHTML='Crimson<br>Dice';
+}
+applySkinChrome();
 
 /* ============================ STATE ============================ */
 let S=null, history=[], modal=null, entryPts='';
@@ -341,7 +475,7 @@ document.getElementById('histBtn').onclick=()=>{ modal={type:'history'}; render(
 document.getElementById('shareBtn').onclick=()=>{ modal={type:'share'}; render(); };
 
 let msg='', msgClass='';
-function flash(m,c){ msg=m; msgClass=c||''; }
+function flash(m,c){ msg=L(m); msgClass=c||''; }
 
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} pushLive(); }
 
@@ -449,6 +583,36 @@ let cloudGames=null, histList=null;
 function crew(){ try{ const r=localStorage.getItem(CREWSTORE); return r?JSON.parse(r):null; }catch(e){ return null; } }
 function setCrew(c){ try{ c?localStorage.setItem(CREWSTORE,JSON.stringify(c)):localStorage.removeItem(CREWSTORE); }catch(e){} }
 function sbHeaders(){ return {'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'}; }
+const CRIM_OPENED='crimsonDice.openedKits', CRIM_ID='crimsonDice.identity', CRIM_DEV='crimsonDice.deviceId';
+function deviceId(){
+  try{
+    let id=localStorage.getItem(CRIM_DEV);
+    if(!id){ id=(crypto&&crypto.randomUUID)?crypto.randomUUID():('d'+Date.now()+Math.random().toString(16).slice(2)); localStorage.setItem(CRIM_DEV,id); }
+    return id;
+  }catch(e){ return 'anon-'+Date.now(); }
+}
+function crimsonIdentity(){ try{ const r=localStorage.getItem(CRIM_ID); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function setCrimsonIdentity(v){ try{ v?localStorage.setItem(CRIM_ID,JSON.stringify(v)):localStorage.removeItem(CRIM_ID); }catch(e){} }
+function logCrimson(event, extra){
+  if(SKIN.id!=='crimson'||!SKIN.kit) return;
+  const id=crimsonIdentity()||{};
+  const body={ kit_id:SKIN.kit, event,
+    name:(extra&&extra.name)||id.name||null,
+    email:(extra&&extra.email)||id.email||null,
+    user_agent:(typeof navigator!=='undefined'&&navigator.userAgent)||null,
+    device_id:deviceId() };
+  try{ fetch(`${SUPA_URL}/rest/v1/crimson_events`,{method:'POST',headers:{...sbHeaders(),'Prefer':'return=minimal'},body:JSON.stringify(body)}).catch(()=>{}); }catch(e){}
+}
+function markKitOpen(){
+  if(SKIN.id!=='crimson'||!SKIN.kit) return;
+  let first=true;
+  try{
+    const a=JSON.parse(localStorage.getItem(CRIM_OPENED)||'[]');
+    first=!a.includes(SKIN.kit);
+    if(first){ a.push(SKIN.kit); localStorage.setItem(CRIM_OPENED,JSON.stringify(a)); }
+  }catch(e){}
+  logCrimson(first?'open':'return');
+}
 function outbox(){ try{ const r=localStorage.getItem(OUTBOX); return r?JSON.parse(r):[]; }catch(e){ return []; } }
 function saveOutbox(a){ try{ localStorage.setItem(OUTBOX,JSON.stringify(a)); }catch(e){} }
 function newId(){ return (crypto&&crypto.randomUUID)?crypto.randomUUID():'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16);}); }
@@ -539,16 +703,16 @@ async function fetchWatch(){
   if(st&&st.phase==='playing') keepAwake(); else releaseAwake();   // watchers stay awake only while the game is live
   render();
 }
-function startWatch(){ foot.textContent='🦞 Claw Watch · '+WATCH; fetchWatch(); setInterval(fetchWatch,4000); }
+function startWatch(){ foot.textContent=L('🦞 Claw Watch · '+WATCH, true); fetchWatch(); setInterval(fetchWatch,4000); }
 function renderWatch(){
   const st=watchData&&watchData.state;
   const backBtn=`<button class="btn ghost sm" id="watchback" style="margin-top:4px">← Back to the app</button>`;
   const wireBack=()=>{ const b=document.getElementById('watchback'); if(b) b.onclick=()=>{ location.href=location.pathname; }; };
   if(!st){
-    app.innerHTML=`<div class="card" style="text-align:center"><div class="burst">📺</div>
+    app.innerHTML=L(`<div class="card" style="text-align:center"><div class="burst">📺</div>
       <h2 style="font-size:20px">Waiting for the table…</h2>
       <p style="color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 0">Claw Watch <b style="color:#fff">${esc(WATCH||'')}</b> isn’t live yet.<br>This page updates by itself — leave it open.</p></div>
-      ${backBtn}`;
+      ${backBtn}`);
     wireBack();
     return;
   }
@@ -614,17 +778,17 @@ function renderWatch(){
         ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}
         <div class="cb-hint">One payment each settles the whole night.</div></div>`;
     }
-    app.innerHTML=`${endHtml}
+    app.innerHTML=L(`${endHtml}
       <div class="hint">Game over — this page updates if another game starts. 🦞</div>
-      ${backBtn}`;
+      ${backBtn}`);
     wireBack();
     return;
   }
-  app.innerHTML=`${banner}
+  app.innerHTML=L(`${banner}
     <div class="card"><div class="label">🦞 Claw Watch ${esc(WATCH)} · ${stale?'idle':'LIVE'}<span style="font-weight:700;letter-spacing:0;text-transform:none;color:#8fa2c2">updated ${agoText}</span></div><div class="sb ${wdens}">${rows}</div></div>
     ${turnHtml}
     <div class="hint">Read-only live scoreboard — refreshes itself, no app needed. 🦞</div>
-    ${backBtn}`;
+    ${backBtn}`);
   wireBack();
 }
 
@@ -670,13 +834,31 @@ function newSetup(){
             :{names:['','','',''],stake:1,customStake:'',liability:false,noMath:false};
 }
 
+let setupLogged=false, idCardDismissed=false;
+function showIdCard(){
+  if(SKIN.id!=='crimson'||!SKIN.kit||idCardDismissed) return false;
+  const id=crimsonIdentity();
+  if(id && (id.skipped || id.name || id.email)) return false;
+  return true;
+}
 function renderSetup(){
   const d=draft;
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.9.1 · app design by addison hoover';
-  app.innerHTML=`
+  foot.textContent=APP_VER+' · app design by addison hoover'+(SKIN.id==='crimson'&&SKIN.kit?` · pouch ${SKIN.kit}`:'');
+  if(SKIN.id==='crimson'&&SKIN.kit&&!setupLogged){ setupLogged=true; logCrimson('setup'); }
+  const kitCard=SKIN.id==='crimson'&&SKIN.kit?`<div class="card"><div class="label">Pouch ${SKIN.kit}</div>
+    <div class="hint" style="margin-top:0;text-align:left">Crimson Dice kit ${SKIN.kit} of 25. Same game — elephant is the 1-face.</div></div>`:'';
+  const id=crimsonIdentity();
+  const idCard=showIdCard()?`<div class="card" id="idcard">
+      <div class="label">Optional · skip anytime</div>
+      <div class="hint" style="margin:0 0 10px;text-align:left">Leave a name so Addison can see who opened pouch ${SKIN.kit}. Not required to play.</div>
+      <div class="prow"><input type="text" id="idname" placeholder="Name" autocomplete="name"></div>
+      <div class="prow"><input type="email" id="idemail" placeholder="Email" autocomplete="email"></div>
+      <div class="row"><button class="btn sm" id="idsave">Save</button><button class="btn ghost sm" id="idskip">Skip</button></div>
+    </div>`:(id&&(id.name||id.email)?`<div class="hint">Signed in as ${esc(id.name||id.email)} · pouch ${SKIN.kit}</div>`:'');
+  app.innerHTML=L(`${kitCard}${idCard}
     <div class="card">
       <div class="label">Players <span style="color:#8fa2c2;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
       <div id="players"></div>
@@ -704,7 +886,7 @@ function renderSetup(){
       </div>
     </div>
     <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
-    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`;
+    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`);
 
   const pw=document.getElementById('players');
   pw.innerHTML=d.names.map((n,i)=>`
@@ -725,6 +907,17 @@ function renderSetup(){
   document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
   document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
   document.getElementById('start').onclick=startGame;
+  const idsave=document.getElementById('idsave');
+  if(idsave) idsave.onclick=()=>{
+    const name=(document.getElementById('idname').value||'').trim().slice(0,80);
+    const email=(document.getElementById('idemail').value||'').trim().slice(0,120);
+    setCrimsonIdentity({name:name||null,email:email||null,skipped:false});
+    idCardDismissed=true;
+    logCrimson('setup',{name,email});
+    renderSetup();
+  };
+  const idskip=document.getElementById('idskip');
+  if(idskip) idskip.onclick=()=>{ setCrimsonIdentity({skipped:true}); idCardDismissed=true; renderSetup(); };
 }
 
 function startGame(){
@@ -738,6 +931,7 @@ function startGame(){
   clearHistory(); entryPts=''; resetNm(); flash('','');
   save(); render();
   keepAwake();
+  logCrimson('game_start');
 }
 
 /* ============================ HELPERS ============================ */
@@ -852,7 +1046,7 @@ function endgameAdvance(){
   S.cur=eg.q[0];
 }
 
-function finalize(){ S.phase='ended'; modal=null; archiveGame(); save(); render(); releaseAwake(); }
+function finalize(){ S.phase='ended'; modal=null; archiveGame(); logCrimson('game_end'); save(); render(); releaseAwake(); }
 
 /* ============================ PAYOUTS ============================ */
 function payoutsFor(players,stake){
@@ -900,7 +1094,7 @@ function renderGame(){
   const canBank=pts>0&&!block;
   const adds=S.turnAdds&&S.turnAdds.length?S.turnAdds.join(' + '):'';
 
-  app.innerHTML=`
+  app.innerHTML=L(`
     ${banner}
     <div class="card">
       <div class="label">Scores${eg?' · 🏁 last licks':''}<button class="lk" id="editOrder">${S.editOrder?'✓ Done':'⇅ Reorder'}</button></div>
@@ -937,7 +1131,7 @@ function renderGame(){
     </div>
 
     ${liabHtml}
-    <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`;
+    <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`);
 
   // scoreboard interactions
   document.querySelectorAll('[data-sel]').forEach(el=>{ if(el.dataset.sel!=='') el.onclick=ev=>{ if(ev.target.closest('[data-log]'))return; if(+el.dataset.sel===S.cur) return; snapshot(); S.cur=+el.dataset.sel; S.accrual=0; S.turnAdds=[]; flash(`${S.players[S.cur].name} is up.`,''); entryPts=''; resetNm(); save(); render(); }; });
@@ -1083,7 +1277,7 @@ function renderModal(){
       <button class="btn ghost" id="m_back">← All games</button><div class="spacer"></div>
       <button class="btn ghost" id="m_close">Close</button></div>`;
   }
-  ov.innerHTML=html;
+  ov.innerHTML=L(html);
   document.querySelector('.wrap').appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov){ modal=null; render(); } });
   const mEl=ov.querySelector('.modal');
@@ -1111,17 +1305,17 @@ function renderModal(){
 
   const sa=document.getElementById('m_shareapp');
   if(sa) sa.onclick=async()=>{
-    const url=location.origin+location.pathname;
-    const text='Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:';
-    if(navigator.share){ try{ await navigator.share({title:'Lobster Dice',text,url}); }catch(e){} }
+    const url=location.origin+(SKIN.id==='crimson'?(SKIN.kit?'/crimson/'+SKIN.kit:'/crimson'):location.pathname);
+    const text=L('Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:', true);
+    if(navigator.share){ try{ await navigator.share({title:L('Lobster Dice'),text,url}); }catch(e){} }
     else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('App link copied — text it to the table:\n'+url); }catch(e){ alert('App link:\n'+url); } }
     else alert('App link:\n'+url);
   };
   const cb2=document.getElementById('m_codebox');
   if(cb2){ const shareCode=async()=>{ const c2=crew(); if(!c2) return;
       const url=location.origin+location.pathname+'?watch='+encodeURIComponent(c2.code);
-      const text=`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`;
-      if(navigator.share){ try{ await navigator.share({title:'Lobster Dice — Claw Watch',text,url}); }catch(e){} }
+      const text=L(`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`);
+      if(navigator.share){ try{ await navigator.share({title:L('Lobster Dice — Claw Watch'),text,url}); }catch(e){} }
       else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(text+' '+url); alert('Copied — text it to the table.'); }catch(e){ alert(text+' '+url); } }
       else alert(text+' '+url); };
     cb2.onclick=shareCode;
@@ -1176,7 +1370,7 @@ function renderEnd(){
     </div>`;
   }
 
-  app.innerHTML=`
+  app.innerHTML=L(`
     <div class="card" style="text-align:center"><div class="burst" style="font-size:52px">🏆</div>
       <h2 style="font-size:24px">${tie?'It’s a tie!':esc(winner.name)+' wins!'}</h2>
       <p style="color:var(--muted);margin:6px 0 0">${tie?`${winTotal} apiece`:`${winTotal} points · won by ${margin}`}</p></div>
@@ -1190,7 +1384,7 @@ function renderEnd(){
       <div class="stat"><div class="v">${dubs}</div><div class="k">🦞🦞 double lobsters</div></div>
       <div class="stat"><div class="v">${big.v}</div><div class="k">biggest turn · ${esc(big.who)}</div></div>
       <div class="stat"><div class="v">${N()}</div><div class="k">players</div></div></div></div>
-    <button class="btn" id="again">🎲 New game</button>`;
+    <button class="btn" id="again">🎲 New game</button>`);
   document.getElementById('again').onclick=()=>{ wipe(); S=null; newSetup(); render(); };
   const rs=document.getElementById('resetSeries');
   if(rs) rs.onclick=()=>{ if(confirm('Reset the series tab to $0 for everyone?')){ try{ localStorage.removeItem(SSTORE); }catch(e){} render(); } };
@@ -1214,12 +1408,13 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
 (function(){
   const sp=document.getElementById('splash');
   setTimeout(()=>{ sp.classList.add('out'); setTimeout(()=>sp.remove(),380); },1900);
+  markKitOpen();
   if(WATCH){ startWatch(); return; }
   const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
   keepAwake();   // resume screen lock protection if a game was in progress
   trySync();   // push any games that finished offline
   ensureCrew();   // every player owns an always-on Claw Watch code
-  if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+  if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{})); }
 })();
 </script>
 </body>
