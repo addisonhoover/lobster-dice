@@ -1,5 +1,5 @@
 /* Lobster Dice / Crimson Dice service worker — offline app shell (cache-first) */
-const CACHE = 'lobster-dice-v10';
+const CACHE = 'lobster-dice-v11';
 const ASSETS = [
   './',
   './index.html',
