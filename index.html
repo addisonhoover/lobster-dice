@@ -220,7 +220,7 @@
   /* massive lobster towering on the right — whole animal visible, legs grazing the edge */
   /* colossal lobster, mostly off-frame right — only its left claw/side looms into view */
   .sp-lob{position:absolute;left:6vw;top:30vh;height:140vh;width:auto;
-    filter:drop-shadow(0 0 60px rgba(255,90,77,.35));
+    filter:drop-shadow(0 14px 30px rgba(0,0,0,.38));
     animation:spLob .7s ease-out both}
   @keyframes spLob{0%{opacity:0;transform:translate(14vw,10vh)}100%{opacity:1;transform:translate(0,0)}}
   /* title: upper-middle left, stacked — big, using the negative space */
@@ -229,7 +229,7 @@
     animation:spTitle .55s .1s cubic-bezier(.34,1.56,.64,1) both}
   @keyframes spTitle{0%{opacity:0;transform:translateY(22px) scale(.9)}100%{opacity:1;transform:translateY(0) scale(1)}}
   /* dice roll in from the left, landing just below the title */
-  .sp-dice{position:absolute;top:calc(9vh + 168px);line-height:1;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+  .sp-dice{position:absolute;top:calc(9vh + 168px);line-height:1;filter:drop-shadow(0 6px 12px rgba(0,0,0,.38))}
   .sp-dice svg{width:62px;height:62px;display:block}
   .sp-d1{left:8vw;animation:spD1 1.05s .3s linear both}
   .sp-d2{left:29vw;animation:spD2 1.15s .42s linear both}
@@ -287,10 +287,10 @@
     background:radial-gradient(900px 600px at 80% -10%, #c42b44 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2b2b2b 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
   }
   html.skin-crimson .sp-title{background:linear-gradient(90deg,#fff,#f7d4d8 40%,#fff);-webkit-background-clip:text;background-clip:text}
-  html.skin-crimson .sp-ele{position:absolute;left:2vw;top:20vh;height:64vh;width:auto;max-width:88vw;
-    object-fit:contain;object-position:left center;
-    filter:drop-shadow(0 0 60px rgba(255,255,255,.28));
-    transform-origin:28% 40%;
+  html.skin-crimson .sp-ele{position:absolute;left:auto;right:0;top:20vh;height:64vh;width:auto;max-width:88vw;
+    object-fit:contain;object-position:right center;
+    filter:drop-shadow(0 14px 32px rgba(0,0,0,.35));
+    transform-origin:78% 40%;
     animation:spEle 1.15s cubic-bezier(.22,.72,.28,1) both}
   /* head-in from the side, then a small nod and settle — not a one-shot rotate */
   @keyframes spEle{
@@ -300,7 +300,7 @@
     82%{opacity:1;transform:translate(0,.3vh) rotate(-5deg)}
     100%{opacity:1;transform:translate(0,0) rotate(-6deg)}}
   @media (max-width:560px){
-    html.skin-crimson .sp-ele{left:4vw;top:26vh;height:44vh;max-width:92vw}
+    html.skin-crimson .sp-ele{left:auto;right:0;top:26vh;height:44vh;max-width:92vw}
   }
   html.skin-crimson .sp-lob,html.skin-renegade .sp-lob{display:none}
   html:not(.skin-crimson) .sp-ele{display:none}
@@ -343,7 +343,7 @@
   html.skin-renegade .sp-title{background:linear-gradient(90deg,#F5DCA0,#CEB888 40%,#fff);-webkit-background-clip:text;background-clip:text}
   html.skin-renegade .sp-ren{position:absolute;left:8vw;top:12vh;height:70vh;width:auto;max-width:62vw;
     object-fit:contain;object-position:center top;
-    filter:drop-shadow(0 0 50px rgba(206,184,136,.38));
+    filter:drop-shadow(0 14px 28px rgba(0,0,0,.4));
     transform-origin:50% 18%;
     animation:spRen 1.15s cubic-bezier(.22,.72,.28,1) both}
   @keyframes spRen{
@@ -432,7 +432,7 @@
 <path style="fill:#A42615;" d="M33.3,39.78c0.92-0.05,3.8,0.42,3.73-1.55s-3.73-1.55-4.36-1.55c-0.63,0-2.75,0.35-2.75,1.76
 	S31.9,39.85,33.3,39.78z"/>
   </g></svg>
-  <img class="sp-ele" id="eleArt" src="crimson/elephant-white.svg" alt="">
+  <img class="sp-ele" id="eleArt" src="crimson/elephant-splash.png" alt="">
   <img class="sp-ren" id="spearArt" src="renegade/splash-head.png" alt="">
   <div class="sp-title sp-title-lob">Lobster<br>Dice</div>
   <div class="sp-title sp-title-ele">Crimson<br>Dice</div>
@@ -447,12 +447,12 @@
     <use href="#lobArt" transform="translate(13,11) scale(0.30)"/>
   </svg></div>
   <div class="sp-dice sp-d2 sp-d2-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="2" width="60" height="60" rx="14" fill="#9E1B32"/>
-    <image href="crimson/elephant-white.svg" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
+    <image href="crimson/elephant-crimson.svg" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
   <div class="sp-dice sp-d2 sp-d2-ren"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-    <rect x="2" y="2" width="60" height="60" rx="14" fill="#782F40"/>
-    <image href="renegade/pip.png" x="14" y="8" width="36" height="48" preserveAspectRatio="xMidYMid meet"/>
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
+    <image href="renegade/pip-garnet.png" x="14" y="8" width="36" height="48" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
 </div>
 <div class="wrap">

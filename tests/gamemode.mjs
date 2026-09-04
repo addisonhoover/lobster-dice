@@ -2,9 +2,13 @@ import { JSDOM } from 'jsdom';
 import fs from 'node:fs';
 
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const sw = fs.readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 const eleSvg = fs.readFileSync(new URL('../crimson/elephant-white.svg', import.meta.url), 'utf8');
+const eleCrimsonSvg = fs.readFileSync(new URL('../crimson/elephant-crimson.svg', import.meta.url), 'utf8');
 const pipSvg = fs.readFileSync(new URL('../renegade/pip.svg', import.meta.url), 'utf8');
 const markSvg = fs.readFileSync(new URL('../renegade/header-mark.svg', import.meta.url), 'utf8');
+const splashPng = fs.statSync(new URL('../crimson/elephant-splash.png', import.meta.url));
+const pipGarnet = fs.statSync(new URL('../renegade/pip-garnet.png', import.meta.url));
 
 let pass = 0, fail = 0;
 const ok = (n, c) => { (c ? pass++ : fail++); console.log((c ? '✓' : '✗ FAIL') + ' ' + n); };
@@ -26,13 +30,21 @@ const type = (window, sel, val) => {
 };
 
 ok('elephant SVG is a white-fill vector', eleSvg.includes('fill="#ffffff"') && eleSvg.includes('<path') && !eleSvg.includes('elephant-white.png'));
+ok('crimson splash die elephant is recolored #9E1B32', eleCrimsonSvg.includes('fill="#9E1B32"') && !eleCrimsonSvg.includes('fill="#ffffff"') && eleCrimsonSvg.includes('<path'));
+ok('scarf splash elephant PNG exists', splashPng.size > 10000);
+ok('garnet pip PNG exists', pipGarnet.size > 1000);
 ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-white.svg') && (html.match(/elephant-white\.png/g)||[]).length===0);
+ok('splash hero uses scarf elephant PNG', /id="eleArt"[^>]*elephant-splash\.png/.test(html) && html.includes("ELE='crimson/elephant-white.svg'"));
+ok('crimson splash die is white with crimson elephant', /sp-d2-ele[\s\S]*?fill="url\(#dieG\)"[\s\S]*?elephant-crimson\.svg/.test(html));
 ok('renegade pip SVG backup is a cream spearhead', pipSvg.includes('fill="#F5DCA0"') && pipSvg.includes('<path') && !pipSvg.toLowerCase().includes('seminole'));
 ok('renegade header mark SVG backup is gold', markSvg.includes('fill="#CEB888"') && markSvg.includes('<path'));
 ok('app chrome uses cream pip PNG not leaf SVG', html.includes("REN='renegade/pip.png'") && html.includes('renegade/pip.png') &&
-  html.includes('sp-d2-ren') && /sp-d2-ren[\s\S]*pip\.png/.test(html) && !html.includes("REN='renegade/pip.svg'"));
+  html.includes('sp-d2-ren') && /sp-d2-ren[\s\S]*pip-garnet\.png/.test(html) && !html.includes("REN='renegade/pip.svg'"));
+ok('renegade splash die is white with garnet pip', /sp-d2-ren[\s\S]*?fill="url\(#dieG\)"[\s\S]*?pip-garnet\.png/.test(html));
 ok('app has renegade splash + header mark', html.includes('renegade/splash-head.png') && html.includes('renegade/header-mark.png'));
 ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole') && !html.toLowerCase().includes('florida state'));
+ok('SW cache bumped for splash polish', sw.includes("lobster-dice-v15") && sw.includes('elephant-splash.png') &&
+  sw.includes('elephant-crimson.svg') && sw.includes('pip-garnet.png'));
 
 // --- setup shows Jackson Mode + Game Mode, default Lobster ---
 {
@@ -110,8 +122,7 @@ ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole')
     (q(document, '.top .logo img') || {}).getAttribute?.('src')?.includes('elephant-white.svg'));
   ok('remembered Game Mode', window.localStorage.getItem('lobsterDice.gameMode') === 'crimson');
   ok('splash replayed for crimson', !!q(document, '#splash') && !!q(document, '#eleArt') &&
-    (q(document, '#eleArt').getAttribute('src') || '').includes('elephant-white.svg') &&
-    !(q(document, '#eleArt').getAttribute('src') || '').includes('.png') &&
+    (q(document, '#eleArt').getAttribute('src') || '').includes('elephant-splash.png') &&
     q(document, '.sp-title-ele').textContent.includes('Crimson'));
   ok('still on setup after switch', !!q(document, '#start') && !!q(document, '#gameModeTog'));
   ok('player names persisted', q(document, '#players input[data-i="0"]').value === 'Addison' &&
