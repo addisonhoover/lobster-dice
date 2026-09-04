@@ -1,5 +1,5 @@
 /* Lobster Dice service worker — offline app shell (cache-first) */
-const CACHE = 'lobster-dice-v9';
+const CACHE = 'lobster-dice-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const ASSETS = [
   './icon-512.png',
   './crimson/manifest.webmanifest',
   './crimson/elephant-white.png',
+  './crimson/elephant-white.svg',
   './crimson/icon-192.png',
   './crimson/icon-512.png'
 ];

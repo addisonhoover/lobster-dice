@@ -284,10 +284,14 @@
     object-fit:contain;
     filter:drop-shadow(0 0 60px rgba(255,255,255,.28));
     transform-origin:22% 42%;
-    animation:spEle .75s cubic-bezier(.2,.8,.3,1) both}
+    animation:spEle 1.15s cubic-bezier(.22,.72,.28,1) both}
+  /* head-in from the side, then a small nod and settle — not a one-shot rotate */
   @keyframes spEle{
-    0%{opacity:0;transform:translate(18vw,12vh) rotate(14deg)}
-    100%{opacity:1;transform:translate(0,0) rotate(-8deg)}}
+    0%{opacity:0;transform:translate(20vw,8vh) rotate(4deg)}
+    46%{opacity:1;transform:translate(1vw,1vh) rotate(-2deg)}
+    64%{opacity:1;transform:translate(0,3.2vh) rotate(-12deg)}
+    82%{opacity:1;transform:translate(0,.5vh) rotate(-5deg)}
+    100%{opacity:1;transform:translate(0,0) rotate(-7deg)}}
   html.skin-crimson .sp-lob{display:none}
   html:not(.skin-crimson) .sp-ele{display:none}
   html.skin-crimson .sp-d2-lob{display:none}
@@ -371,7 +375,7 @@
 <path style="fill:#A42615;" d="M33.3,39.78c0.92-0.05,3.8,0.42,3.73-1.55s-3.73-1.55-4.36-1.55c-0.63,0-2.75,0.35-2.75,1.76
 	S31.9,39.85,33.3,39.78z"/>
   </g></svg>
-  <img class="sp-ele" id="eleArt" src="crimson/elephant-white.png" alt="">
+  <img class="sp-ele" id="eleArt" src="crimson/elephant-white.svg" alt="">
   <div class="sp-title sp-title-lob">Lobster<br>Dice</div>
   <div class="sp-title sp-title-ele">Crimson<br>Dice</div>
   <div class="sp-dice sp-d1"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
@@ -385,7 +389,7 @@
   </svg></div>
   <div class="sp-dice sp-d2 sp-d2-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <rect x="2" y="2" width="60" height="60" rx="14" fill="#9E1B32"/>
-    <image href="crimson/elephant-white.png" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
+    <image href="crimson/elephant-white.svg" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
 </div>
 <div class="wrap">
@@ -410,7 +414,7 @@ const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survive
 const STAKES=[0.01,0.10,0.15,0.25,1,5,10,100];
 const APP_VER='v4.11';
 const GMSTORE='lobsterDice.gameMode';
-const ELE='crimson/elephant-white.png';
+const ELE='crimson/elephant-white.svg';
 const ELE_PIP='<img class="ele-pip" src="'+ELE+'" alt="">';
 
 const SKINS={

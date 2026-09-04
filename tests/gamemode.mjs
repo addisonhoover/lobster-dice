@@ -2,6 +2,7 @@ import { JSDOM } from 'jsdom';
 import fs from 'node:fs';
 
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const eleSvg = fs.readFileSync(new URL('../crimson/elephant-white.svg', import.meta.url), 'utf8');
 
 let pass = 0, fail = 0;
 const ok = (n, c) => { (c ? pass++ : fail++); console.log((c ? '✓' : '✗ FAIL') + ' ' + n); };
@@ -21,6 +22,9 @@ const type = (window, sel, val) => {
   el.value = val;
   el.dispatchEvent(new window.Event('input', { bubbles: true }));
 };
+
+ok('elephant SVG is a white-fill vector', eleSvg.includes('fill="#ffffff"') && eleSvg.includes('<path') && !eleSvg.includes('elephant-white.png'));
+ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-white.svg') && (html.match(/elephant-white\.png/g)||[]).length===0);
 
 // --- setup shows Jackson Mode + Game Mode, default Lobster ---
 {
@@ -79,10 +83,11 @@ const type = (window, sel, val) => {
   ok('switched to crimson', window.SKIN.id === 'crimson');
   ok('crimson class + title', document.documentElement.classList.contains('skin-crimson') && document.title.includes('Crimson Dice'));
   ok('header is Crimson with white elephant', q(document, '.top h1').textContent === 'Crimson Dice' &&
-    (q(document, '.top .logo img') || {}).getAttribute?.('src')?.includes('elephant-white.png'));
+    (q(document, '.top .logo img') || {}).getAttribute?.('src')?.includes('elephant-white.svg'));
   ok('remembered Game Mode', window.localStorage.getItem('lobsterDice.gameMode') === 'crimson');
   ok('splash replayed for crimson', !!q(document, '#splash') && !!q(document, '#eleArt') &&
-    (q(document, '#eleArt').getAttribute('src') || '').includes('elephant-white.png') &&
+    (q(document, '#eleArt').getAttribute('src') || '').includes('elephant-white.svg') &&
+    !(q(document, '#eleArt').getAttribute('src') || '').includes('.png') &&
     q(document, '.sp-title-ele').textContent.includes('Crimson'));
   ok('still on setup after switch', !!q(document, '#start') && !!q(document, '#gameModeTog'));
   ok('player names persisted', q(document, '#players input[data-i="0"]').value === 'Addison' &&
@@ -215,7 +220,7 @@ const type = (window, sel, val) => {
   const face1 = q(document, '[data-nm-col="0"][data-nm-face="1"]');
   ok('crimson Jackson face 1 is elephant art', (() => {
     const img = face1 && face1.querySelector('img.ele-pip');
-    return img && (img.getAttribute('src') || '').includes('elephant-white.png') && !face1.textContent.includes('🦞');
+    return img && (img.getAttribute('src') || '').includes('elephant-white.svg') && !face1.textContent.includes('🦞');
   })());
   ok('crimson wipe says Elephant', q(document, '#lob1').textContent.includes('Elephant') && !q(document, '#lob1').textContent.includes('Lobster'));
   click(window, q(document, '[data-nm-col="0"][data-nm-face="1"]'));
