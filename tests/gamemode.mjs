@@ -35,16 +35,23 @@ ok('scarf splash elephant PNG exists', splashPng.size > 10000);
 ok('garnet pip PNG exists', pipGarnet.size > 1000);
 ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-white.svg') && (html.match(/elephant-white\.png/g)||[]).length===0);
 ok('splash hero uses scarf elephant PNG', /id="eleArt"[^>]*elephant-splash\.png/.test(html) && html.includes("ELE='crimson/elephant-white.svg'"));
-ok('crimson splash die is white with crimson elephant', /sp-d2-ele[\s\S]*?fill="url\(#dieG\)"[\s\S]*?elephant-crimson\.svg/.test(html));
+ok('crimson splash die is white with crimson elephant', /sp-d2-ele[\s\S]*?fill="#ffffff"[\s\S]*?elephant-crimson\.svg/.test(html));
 ok('renegade pip SVG backup is a cream spearhead', pipSvg.includes('fill="#F5DCA0"') && pipSvg.includes('<path') && !pipSvg.toLowerCase().includes('seminole'));
 ok('renegade header mark SVG backup is gold', markSvg.includes('fill="#CEB888"') && markSvg.includes('<path'));
 ok('app chrome uses cream pip PNG not leaf SVG', html.includes("REN='renegade/pip.png'") && html.includes('renegade/pip.png') &&
   html.includes('sp-d2-ren') && /sp-d2-ren[\s\S]*pip-garnet\.png/.test(html) && !html.includes("REN='renegade/pip.svg'"));
-ok('renegade splash die is white with garnet pip', /sp-d2-ren[\s\S]*?fill="url\(#dieG\)"[\s\S]*?pip-garnet\.png/.test(html));
+ok('renegade splash die is white with garnet pip', /sp-d2-ren[\s\S]*?fill="#ffffff"[\s\S]*?pip-garnet\.png/.test(html));
 ok('app has renegade splash + header mark', html.includes('renegade/splash-head.png') && html.includes('renegade/header-mark.png'));
 ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole') && !html.toLowerCase().includes('florida state'));
-ok('SW cache bumped for splash polish', sw.includes("lobster-dice-v15") && sw.includes('elephant-splash.png') &&
-  sw.includes('elephant-crimson.svg') && sw.includes('pip-garnet.png'));
+ok('SW cache matches production', sw.includes("lobster-dice-v27") && sw.includes('elephant-splash.png') &&
+  sw.includes('elephant-crimson.svg'));
+ok('Jackson die frames use .nmdie', html.includes('class="nmdie"') && html.includes('.nmdie{') &&
+  html.includes('html.skin-crimson .nmdie') && html.includes('html.skin-renegade .nmdie'));
+ok('success green is locked off skin --good', html.includes('--success:#57e389') &&
+  html.includes('color:var(--success)') && html.includes('.msg.good{color:var(--success)}'));
+ok('settle-up zero amounts use --ink', html.includes('.ledger.z .amt{color:var(--ink)}') &&
+  !/\.ledger\.z \.amt\{color:var\(--coral\)\}/.test(html));
+ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.includes('-webkit-fill-available'));
 
 // --- setup shows Jackson Mode + Game Mode, default Lobster ---
 {
