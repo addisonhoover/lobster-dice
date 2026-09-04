@@ -1,5 +1,5 @@
 /* Lobster Dice service worker — offline app shell (cache-first) */
-const CACHE = 'lobster-dice-v13';
+const CACHE = 'lobster-dice-v14';
 const ASSETS = [
   './',
   './index.html',
