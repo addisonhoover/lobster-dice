@@ -1318,7 +1318,8 @@ function renderModal(){
   }
   ov.innerHTML=modal.type==='gamemode'?html:L(html);
   document.querySelector('.wrap').appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov){ modal=null; render(); } });
+  let ignoreBackdrop=true; setTimeout(()=>{ ignoreBackdrop=false; }, 350);
+  ov.addEventListener('click',e=>{ if(ignoreBackdrop) return; if(e.target===ov){ modal=null; render(); } });
   const mEl=ov.querySelector('.modal');
   if(mEl){ mEl.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="Close">✕</button>'); mEl.querySelector('.mx').onclick=()=>{ modal=null; render(); }; }
   const close=document.getElementById('m_close'); if(close) close.onclick=()=>{ modal=null; render(); };
@@ -1363,8 +1364,8 @@ function renderModal(){
     cb2.onkeydown=e=>{ if(e.key==='Enter') shareCode(); }; }
 
   const f=document.getElementById('m_finish'); if(f) f.onclick=()=>{ modal=null; finalize(); };
-  const nw=document.getElementById('m_new'); if(nw) nw.onclick=()=>{ modal={type:'scrapconfirm'}; render(); };
-  const scrap=document.getElementById('m_scrap'); if(scrap) scrap.onclick=()=>{ wipe(); S=null; modal=null; newSetup(); render(); };
+  const nw=document.getElementById('m_new'); if(nw) nw.onclick=e=>{ e.preventDefault(); e.stopPropagation(); modal={type:'scrapconfirm'}; render(); };
+  const sc=document.getElementById('m_scrap'); if(sc) sc.onclick=e=>{ e.preventDefault(); e.stopPropagation(); wipe(); S=null; modal=null; newSetup(); render(); };
 }
 
 /* ============================ RENDER: END ============================ */

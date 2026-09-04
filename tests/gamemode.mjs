@@ -160,6 +160,8 @@ ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-w
   click(window, q(document, '#m_new'));
   ok('Start a new game opens scrapconfirm', !!q(document, '#m_scrap') && document.body.textContent.includes('Start over'));
   ok('scrapconfirm has Cancel', !!q(document, '#m_close'));
+  q(document, '.ov').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  ok('same-tap backdrop does not dismiss scrapconfirm', !!q(document, '#m_scrap'));
   click(window, q(document, '#m_close'));
   ok('Cancel leaves the live game', !!q(document, '.rollchips') && !q(document, '#start'));
   click(window, q(document, '#menu'));
