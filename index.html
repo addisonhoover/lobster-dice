@@ -280,18 +280,21 @@
     background:radial-gradient(900px 600px at 80% -10%, #c42b44 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2b2b2b 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
   }
   html.skin-crimson .sp-title{background:linear-gradient(90deg,#fff,#f7d4d8 40%,#fff);-webkit-background-clip:text;background-clip:text}
-  html.skin-crimson .sp-ele{position:absolute;left:-4vw;top:16vh;height:88vh;width:auto;max-width:none;
-    object-fit:contain;
+  html.skin-crimson .sp-ele{position:absolute;left:2vw;top:20vh;height:64vh;width:auto;max-width:88vw;
+    object-fit:contain;object-position:left center;
     filter:drop-shadow(0 0 60px rgba(255,255,255,.28));
-    transform-origin:22% 42%;
+    transform-origin:28% 40%;
     animation:spEle 1.15s cubic-bezier(.22,.72,.28,1) both}
   /* head-in from the side, then a small nod and settle — not a one-shot rotate */
   @keyframes spEle{
-    0%{opacity:0;transform:translate(20vw,8vh) rotate(4deg)}
-    46%{opacity:1;transform:translate(1vw,1vh) rotate(-2deg)}
-    64%{opacity:1;transform:translate(0,3.2vh) rotate(-12deg)}
-    82%{opacity:1;transform:translate(0,.5vh) rotate(-5deg)}
-    100%{opacity:1;transform:translate(0,0) rotate(-7deg)}}
+    0%{opacity:0;transform:translate(18vw,6vh) rotate(4deg)}
+    46%{opacity:1;transform:translate(1vw,.6vh) rotate(-2deg)}
+    64%{opacity:1;transform:translate(0,2vh) rotate(-10deg)}
+    82%{opacity:1;transform:translate(0,.3vh) rotate(-5deg)}
+    100%{opacity:1;transform:translate(0,0) rotate(-6deg)}}
+  @media (max-width:560px){
+    html.skin-crimson .sp-ele{left:4vw;top:26vh;height:44vh;max-width:92vw}
+  }
   html.skin-crimson .sp-lob{display:none}
   html:not(.skin-crimson) .sp-ele{display:none}
   html.skin-crimson .sp-d2-lob{display:none}
@@ -902,6 +905,11 @@ function renderSetup(){
         <div class="gmd">${SKIN.symbol}</div>
       </div>
     </div>
+    <div class="card" id="watchCard">
+      <div class="label">${SKIN.watch}</div>
+      <div class="crewcode-big">${crew()&&crew().code?esc(crew().code):'· · · ·'}</div>
+      <div class="hint" style="margin-top:6px;text-align:left">Same 4-digit code on every look.</div>
+    </div>
     <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
     <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`);
 
@@ -925,6 +933,13 @@ function renderSetup(){
   document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
   document.getElementById('gameModeTog').onclick=()=>{ if(S&&S.phase==='playing') return; modal={type:'gamemode',pick:SKIN.id}; render(); };
   document.getElementById('start').onclick=startGame;
+  const hadCrew=!!(crew()&&crew().code);
+  ensureCrew().then(()=>{
+    if(hadCrew || S || WATCH) return;
+    const el=document.querySelector('#watchCard .crewcode-big');
+    const c=crew();
+    if(el && c && c.code) el.textContent=c.code;
+  });
 }
 
 function startGame(){
@@ -1186,6 +1201,12 @@ function renderModal(){
       <button class="btn gold" id="m_finish">🏁 End game now &amp; tally</button><div class="spacer"></div>
       <button class="btn ghost" id="m_new">Start a new game</button><div class="spacer"></div>
       <button class="btn ghost" id="m_close">Cancel</button></div>`;
+  } else if(modal.type==='scrapconfirm'){
+    html=`<div class="modal"><h2>Start over?</h2>
+      <p>Scrap this game and return to setup. Previous games stay in the trophy.</p>
+      <button class="btn" id="m_scrap">Yes, scrap &amp; start over</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="m_close">Cancel</button></div>`;
   } else if(modal.type==='log'){
     const pl=S.players[modal.i];
     const lines=pl.log.length?pl.log.map((e,k)=>{
@@ -1342,7 +1363,8 @@ function renderModal(){
     cb2.onkeydown=e=>{ if(e.key==='Enter') shareCode(); }; }
 
   const f=document.getElementById('m_finish'); if(f) f.onclick=()=>{ modal=null; finalize(); };
-  const nw=document.getElementById('m_new'); if(nw) nw.onclick=()=>{ if(confirm('Scrap this game and start over?')){ wipe(); S=null; modal=null; newSetup(); render(); } };
+  const nw=document.getElementById('m_new'); if(nw) nw.onclick=()=>{ modal={type:'scrapconfirm'}; render(); };
+  const scrap=document.getElementById('m_scrap'); if(scrap) scrap.onclick=()=>{ wipe(); S=null; modal=null; newSetup(); render(); };
 }
 
 /* ============================ RENDER: END ============================ */

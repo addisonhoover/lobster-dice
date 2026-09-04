@@ -29,6 +29,8 @@ ok('off: 6 does not lock (adder cannot see 3+3)', (() => {
 
 click(q('#menu'));
 click(q('#m_new'));
+ok('scrap uses in-app confirm', !!q('#m_scrap') && document.body.textContent.includes('Start over'));
+click(q('#m_scrap'));
 ok('back at setup after scrap', !!q('#start') && !!q('#noMathTog'));
 ok('rematch remembered off', !q('#noMathTog .sw.on'));
 
