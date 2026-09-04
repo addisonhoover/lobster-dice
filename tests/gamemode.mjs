@@ -27,9 +27,11 @@ const type = (window, sel, val) => {
 
 ok('elephant SVG is a white-fill vector', eleSvg.includes('fill="#ffffff"') && eleSvg.includes('<path') && !eleSvg.includes('elephant-white.png'));
 ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-white.svg') && (html.match(/elephant-white\.png/g)||[]).length===0);
-ok('renegade pip SVG is a garnet spearhead', pipSvg.includes('fill="#782F40"') && pipSvg.includes('<path') && !pipSvg.toLowerCase().includes('seminole'));
-ok('renegade header mark SVG is gold', markSvg.includes('fill="#CEB888"') && markSvg.includes('<path'));
-ok('app has renegade splash + icons', html.includes('renegade/splash-head.png') && html.includes('renegade/header-mark.svg') && html.includes('renegade/pip.svg'));
+ok('renegade pip SVG backup is a cream spearhead', pipSvg.includes('fill="#F5DCA0"') && pipSvg.includes('<path') && !pipSvg.toLowerCase().includes('seminole'));
+ok('renegade header mark SVG backup is gold', markSvg.includes('fill="#CEB888"') && markSvg.includes('<path'));
+ok('app chrome uses cream pip PNG not leaf SVG', html.includes("REN='renegade/pip.png'") && html.includes('renegade/pip.png') &&
+  html.includes('sp-d2-ren') && /sp-d2-ren[\s\S]*pip\.png/.test(html) && !html.includes("REN='renegade/pip.svg'"));
+ok('app has renegade splash + header mark', html.includes('renegade/splash-head.png') && html.includes('renegade/header-mark.png'));
 ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole') && !html.toLowerCase().includes('florida state'));
 
 // --- setup shows Jackson Mode + Game Mode, default Lobster ---
@@ -308,7 +310,7 @@ ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole')
     !document.documentElement.classList.contains('skin-crimson') &&
     document.title.includes('Renegade Dice'));
   ok('header is Renegade with gold spear', q(document, '.top h1').textContent === 'Renegade Dice' &&
-    (q(document, '.top .logo img') || {}).getAttribute?.('src')?.includes('header-mark.svg'));
+    (q(document, '.top .logo img') || {}).getAttribute?.('src')?.includes('header-mark.png'));
   ok('remembered Renegade', window.localStorage.getItem('lobsterDice.gameMode') === 'renegade');
   ok('splash replayed for renegade', !!q(document, '#splash') && !!q(document, '#spearArt') &&
     (q(document, '#spearArt').getAttribute('src') || '').includes('renegade/splash-head.png') &&
@@ -381,7 +383,7 @@ ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole')
   const face1 = q(document, '[data-nm-col="0"][data-nm-face="1"]');
   ok('renegade Jackson face 1 is spear pip', (() => {
     const img = face1 && face1.querySelector('img.ren-pip');
-    return img && (img.getAttribute('src') || '').includes('renegade/pip.svg') && !face1.textContent.includes('🦞');
+    return img && (img.getAttribute('src') || '').includes('renegade/pip.png') && !face1.textContent.includes('🦞');
   })());
   ok('renegade wipe says Spear', q(document, '#lob1').textContent.includes('Spear') && !q(document, '#lob1').textContent.includes('Lobster'));
   click(window, q(document, '[data-nm-col="0"][data-nm-face="1"]'));
