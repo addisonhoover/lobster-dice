@@ -12,6 +12,23 @@
 <meta name="apple-mobile-web-app-title" content="Lobster Dice" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="icon" href="icon-192.png" type="image/png" />
+<script>
+(function(){
+  try{
+    var q=new URLSearchParams(location.search||'');
+    if(q.get('watch')) return;
+    var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
+    if(/^\/crimson(?:\/|$)/i.test(p)) return;
+    if((q.get('skin')||'').toLowerCase()==='crimson') return;
+    if((localStorage.getItem('lobsterDice.gameMode')||'')==='crimson'){
+      document.documentElement.classList.add('skin-crimson');
+      var m=document.querySelector('meta[name="theme-color"]');
+      if(m) m.setAttribute('content','#9E1B32');
+      document.title='Crimson Dice — Scorepad';
+    }
+  }catch(e){}
+})();
+</script>
 <style>
   :root{
     --bg1:#0b1f3a; --bg2:#12325c; --bg3:#1b0e2b;
@@ -228,6 +245,61 @@
     86%{transform:translate(.4vw,-16px) rotate(-18deg)}
     94%{transform:translate(0,2px) rotate(6deg)}
     100%{transform:translate(0,0) rotate(11deg)}}
+  /* Game Mode picker */
+  .gmd{width:46px;height:28px;flex:0 0 46px;display:grid;place-items:center;font-size:22px;line-height:1}
+  .gmd img{width:26px;height:26px;object-fit:contain;display:block}
+  .skinrow{display:flex;align-items:center;gap:12px;width:100%;padding:14px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line);margin-bottom:8px;font-weight:800;font-size:16px;text-align:left;color:var(--ink)}
+  .skinrow.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+  .skinrow .sym{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;font-size:22px}
+  .skinrow .sym img{width:28px;height:28px;object-fit:contain;display:block}
+  .skinrow .chk{margin-left:auto;font-size:16px;color:var(--gold)}
+  /* Crimson Dice skin — deep crimson / white / charcoal (color theme only) */
+  html.skin-crimson{
+    --bg1:#6B1222; --bg2:#9E1B32; --bg3:#1c1c1c;
+    --card:rgba(255,255,255,.08); --card2:rgba(255,255,255,.12);
+    --line:rgba(255,255,255,.16);
+    --coral:#9E1B32; --coral2:#c42b44; --gold:#f5f0e8;
+    --sea:#c42b44; --good:#e8e8e8; --bad:#ff8a8a; --warn:#f5e6c8;
+    --ink:#ffffff; --muted:#d4c4c6;
+    background:#6B1222 linear-gradient(160deg,#6B1222,#9E1B32 45%,#1c1c1c);
+  }
+  html.skin-crimson body{
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #c42b44 0%, transparent 55%),
+      radial-gradient(900px 600px at 0% 110%, #2b2b2b 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-crimson .top h1{background:linear-gradient(90deg,#fff,#f7d4d8 55%,#fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  html.skin-crimson .top .logo{filter:drop-shadow(0 4px 8px rgba(255,255,255,.25));width:36px;height:36px;padding:0;display:grid;place-items:center}
+  html.skin-crimson .top .logo img{width:36px;height:36px;object-fit:contain;display:block}
+  html.skin-crimson .accrual .big{background:linear-gradient(180deg,#fff,#f0d0d4);-webkit-background-clip:text;background-clip:text}
+  html.skin-crimson .modal{background:linear-gradient(160deg,#7a1526,#1c1c1c)}
+  html.skin-crimson .modal .rul{color:#f0e4e6}
+  html.skin-crimson input::placeholder{color:#c4a8ac}
+  html.skin-crimson #splash{
+    background:radial-gradient(900px 600px at 80% -10%, #c42b44 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2b2b2b 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-crimson .sp-title{background:linear-gradient(90deg,#fff,#f7d4d8 40%,#fff);-webkit-background-clip:text;background-clip:text}
+  html.skin-crimson .sp-ele{position:absolute;left:-4vw;top:16vh;height:88vh;width:auto;max-width:none;
+    object-fit:contain;
+    filter:drop-shadow(0 0 60px rgba(255,255,255,.28));
+    transform-origin:22% 42%;
+    animation:spEle .75s cubic-bezier(.2,.8,.3,1) both}
+  @keyframes spEle{
+    0%{opacity:0;transform:translate(18vw,12vh) rotate(14deg)}
+    100%{opacity:1;transform:translate(0,0) rotate(-8deg)}}
+  html.skin-crimson .sp-lob{display:none}
+  html:not(.skin-crimson) .sp-ele{display:none}
+  html.skin-crimson .sp-d2-lob{display:none}
+  html:not(.skin-crimson) .sp-d2-ele{display:none}
+  html.skin-crimson .sp-title-lob{display:none}
+  html:not(.skin-crimson) .sp-title-ele{display:none}
+  html.skin-crimson .btn{box-shadow:0 8px 20px rgba(158,27,50,.4)}
+  html.skin-crimson .p.active{border-color:#fff;background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(158,27,50,.12));box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+  html.skin-crimson .rc:active,html.skin-crimson .rc.on{background:linear-gradient(180deg,#fff,#f0e6e6);color:#6B1222;border-color:transparent}
+  .ele-pip{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
+  .nmcol .ele-pip{width:26px;height:26px;display:block;margin:0 auto}
+  .lobrow .ele-pip{width:18px;height:18px;margin:0 4px -3px 0}
 </style>
 </head>
 <body>
@@ -299,15 +371,21 @@
 <path style="fill:#A42615;" d="M33.3,39.78c0.92-0.05,3.8,0.42,3.73-1.55s-3.73-1.55-4.36-1.55c-0.63,0-2.75,0.35-2.75,1.76
 	S31.9,39.85,33.3,39.78z"/>
   </g></svg>
-  <div class="sp-title">Lobster<br>Dice</div>
+  <img class="sp-ele" id="eleArt" src="crimson/elephant-white.png" alt="">
+  <div class="sp-title sp-title-lob">Lobster<br>Dice</div>
+  <div class="sp-title sp-title-ele">Crimson<br>Dice</div>
   <div class="sp-dice sp-d1"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="dieG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dde6f8"/></linearGradient></defs>
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
     <g fill="#e03a30"><circle cx="17" cy="17" r="6"/><circle cx="47" cy="17" r="6"/><circle cx="32" cy="32" r="6"/><circle cx="17" cy="47" r="6"/><circle cx="47" cy="47" r="6"/></g>
   </svg></div>
-  <div class="sp-dice sp-d2"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <div class="sp-dice sp-d2 sp-d2-lob"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
     <use href="#lobArt" transform="translate(13,11) scale(0.30)"/>
+  </svg></div>
+  <div class="sp-dice sp-d2 sp-d2-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="#9E1B32"/>
+    <image href="crimson/elephant-white.png" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
 </div>
 <div class="wrap">
@@ -330,6 +408,109 @@
 const GATE=21, NINE69=69, WIN=101, FIRE=75, STORE='lobsterDice.v2';
 const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survives crossing midnight)
 const STAKES=[0.01,0.10,0.15,0.25,1,5,10,100];
+const APP_VER='v4.11';
+const GMSTORE='lobsterDice.gameMode';
+const ELE='crimson/elephant-white.png';
+const ELE_PIP='<img class="ele-pip" src="'+ELE+'" alt="">';
+
+const SKINS={
+  lobster:{id:'lobster',name:'Lobster Dice',symbol:'🦞',themeClass:'',themeColor:'#0b1f3a',
+    title:'Lobster Dice — Scorepad',short:'Lobster Dice',watch:'Claw Watch',
+    splash:'Lobster<br>Dice',manifest:'manifest.webmanifest',icon:'icon-192.png',apple:'apple-touch-icon.png'},
+  crimson:{id:'crimson',name:'Crimson Dice',symbol:ELE_PIP,themeClass:'skin-crimson',themeColor:'#9E1B32',
+    title:'Crimson Dice — Scorepad',short:'Crimson Dice',watch:'Crimson Watch',
+    splash:'Crimson<br>Dice',manifest:'crimson/manifest.webmanifest',icon:'crimson/icon-192.png',apple:'crimson/icon-192.png'}
+};
+
+function isSkinDeepLink(){
+  const path=(location.pathname||'/').replace(/\/+$/,'')||'/';
+  const q=new URLSearchParams(location.search||'');
+  if((q.get('skin')||'').toLowerCase()==='crimson') return true;
+  return /^\/crimson(?:\/|$)/i.test(path);
+}
+function loadGameMode(){
+  try{ const id=localStorage.getItem(GMSTORE); if(id&&SKINS[id]) return id; }catch(e){}
+  return 'lobster';
+}
+function saveGameMode(id){ try{ localStorage.setItem(GMSTORE,id); }catch(e){} }
+
+let SKIN=SKINS.lobster;
+function L(s, plain){
+  if(s==null||SKIN.id!=='crimson') return s;
+  return String(s)
+    .replace(/Lobster Dice/g,'Crimson Dice')
+    .replace(/Claw Watch/g,'Crimson Watch')
+    .replace(/double-lobster/g,'double-elephant')
+    .replace(/Double lobster/g,'Double elephant')
+    .replace(/double lobsters/g,'double elephants')
+    .replace(/double lobster/g,'double elephant')
+    .replace(/lobsters/g,'elephants')
+    .replace(/Lobsters/g,'Elephants')
+    .replace(/a lobster/g,'an elephant')
+    .replace(/A lobster/g,'An elephant')
+    .replace(/lobster/g,'elephant')
+    .replace(/Lobster/g,'Elephant')
+    .replace(/🦞🦞/g, plain ? '' : ELE_PIP+ELE_PIP)
+    .replace(/🦞/g, plain ? '' : ELE_PIP);
+}
+function applySkinChrome(){
+  const s=SKIN;
+  document.documentElement.classList.toggle('skin-crimson', s.id==='crimson');
+  document.title=s.title;
+  const tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.setAttribute('content',s.themeColor);
+  const ap=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(ap) ap.setAttribute('content',s.short);
+  const man=document.querySelector('link[rel="manifest"]'); if(man) man.setAttribute('href',s.manifest);
+  const icon=document.querySelector('link[rel="icon"]'); if(icon) icon.setAttribute('href',s.icon);
+  const apple=document.querySelector('link[rel="apple-touch-icon"]'); if(apple) apple.setAttribute('href',s.apple);
+  const logo=document.querySelector('.top .logo');
+  if(logo) logo.innerHTML=s.id==='crimson'?'<img src="'+ELE+'" alt="">':'🦞';
+  const h1=document.querySelector('.top h1'); if(h1) h1.textContent=s.short;
+}
+function setSkin(id, opts){
+  const o=opts||{};
+  SKIN=SKINS[id]||SKINS.lobster;
+  window.SKIN=SKIN;
+  if(o.persist!==false) saveGameMode(SKIN.id);
+  applySkinChrome();
+  return SKIN;
+}
+function bootSkin(){
+  if(new URLSearchParams(location.search||'').get('watch')){ setSkin('lobster',{persist:false}); return; }
+  if(isSkinDeepLink()){
+    setSkin('lobster',{persist:false});
+    try{
+      const q=new URLSearchParams(location.search||'');
+      q.delete('skin'); q.delete('kit');
+      const qs=q.toString();
+      history.replaceState(null,'','/'+(qs?'?'+qs:''));
+    }catch(e){}
+    return;
+  }
+  setSkin(loadGameMode(),{persist:false});
+}
+
+let splashHTML='', splashTimer=null;
+function playSplash(done){
+  const old=document.getElementById('splash');
+  if(old) old.remove();
+  if(!splashHTML){ if(done) done(); return; }
+  document.body.insertAdjacentHTML('afterbegin', splashHTML);
+  const sp=document.getElementById('splash');
+  if(!sp){ if(done) done(); return; }
+  sp.classList.remove('out');
+  clearTimeout(splashTimer);
+  splashTimer=setTimeout(()=>{
+    sp.classList.add('out');
+    setTimeout(()=>{ if(sp.parentNode) sp.remove(); if(done) done(); },380);
+  },1900);
+}
+function acceptGameMode(id){
+  modal=null;
+  if(!SKINS[id] || id===SKIN.id){ render(); return; }
+  setSkin(id,{persist:true});
+  render();
+  playSplash();
+}
 
 /* ============================ STATE ============================ */
 let S=null, history=[], modal=null, entryPts='';
@@ -341,7 +522,7 @@ document.getElementById('histBtn').onclick=()=>{ modal={type:'history'}; render(
 document.getElementById('shareBtn').onclick=()=>{ modal={type:'share'}; render(); };
 
 let msg='', msgClass='';
-function flash(m,c){ msg=m; msgClass=c||''; }
+function flash(m,c){ msg=L(m); msgClass=c||''; }
 
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} pushLive(); }
 
@@ -412,6 +593,7 @@ function pushLive(){
   liveTimer=setTimeout(async()=>{
     try{
       const state={ phase:S.phase, stake:S.stake, ts:Date.now(), cur:S.cur, accrual:S.accrual||0,
+        skin:SKIN.id,
         players:S.players.map(p=>({name:p.name,banked:p.banked,busts:p.busts,dubs:p.dubs})),
         endgame:S.endgame?{bestTotal:S.endgame.bestTotal,bestPlayer:S.endgame.bestPlayer,round:S.endgame.round,left:S.endgame.q.length}:null };
       await fetch(`${SUPA_URL}/rest/v1/live`,{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({code:c.code,state,updated_at:new Date().toISOString()})});
@@ -529,6 +711,7 @@ async function fetchWatch(){
     if(r.ok){ const a=await r.json(); watchData=a.length?a[0]:null; }
   }catch(e){}
   const st=watchData&&watchData.state;
+  if(st&&st.skin&&SKINS[st.skin]&&st.skin!==SKIN.id) setSkin(st.skin,{persist:true});
   if(st&&st.phase==='playing') watchGames=null;                 // new game running — refetch ledger at its end
   if(st&&st.phase==='ended'&&!watchGames){
     try{
@@ -539,16 +722,17 @@ async function fetchWatch(){
   if(st&&st.phase==='playing') keepAwake(); else releaseAwake();   // watchers stay awake only while the game is live
   render();
 }
-function startWatch(){ foot.textContent='🦞 Claw Watch · '+WATCH; fetchWatch(); setInterval(fetchWatch,4000); }
+function startWatch(){ fetchWatch(); setInterval(fetchWatch,4000); }
 function renderWatch(){
   const st=watchData&&watchData.state;
+  foot.textContent=L('🦞 Claw Watch · '+WATCH, true);
   const backBtn=`<button class="btn ghost sm" id="watchback" style="margin-top:4px">← Back to the app</button>`;
-  const wireBack=()=>{ const b=document.getElementById('watchback'); if(b) b.onclick=()=>{ location.href=location.pathname; }; };
+  const wireBack=()=>{ const b=document.getElementById('watchback'); if(b) b.onclick=()=>{ location.href='/'; }; };
   if(!st){
-    app.innerHTML=`<div class="card" style="text-align:center"><div class="burst">📺</div>
+    app.innerHTML=L(`<div class="card" style="text-align:center"><div class="burst">📺</div>
       <h2 style="font-size:20px">Waiting for the table…</h2>
       <p style="color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 0">Claw Watch <b style="color:#fff">${esc(WATCH||'')}</b> isn’t live yet.<br>This page updates by itself — leave it open.</p></div>
-      ${backBtn}`;
+      ${backBtn}`);
     wireBack();
     return;
   }
@@ -614,17 +798,17 @@ function renderWatch(){
         ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}
         <div class="cb-hint">One payment each settles the whole night.</div></div>`;
     }
-    app.innerHTML=`${endHtml}
+    app.innerHTML=L(`${endHtml}
       <div class="hint">Game over — this page updates if another game starts. 🦞</div>
-      ${backBtn}`;
+      ${backBtn}`);
     wireBack();
     return;
   }
-  app.innerHTML=`${banner}
+  app.innerHTML=L(`${banner}
     <div class="card"><div class="label">🦞 Claw Watch ${esc(WATCH)} · ${stale?'idle':'LIVE'}<span style="font-weight:700;letter-spacing:0;text-transform:none;color:#8fa2c2">updated ${agoText}</span></div><div class="sb ${wdens}">${rows}</div></div>
     ${turnHtml}
     <div class="hint">Read-only live scoreboard — refreshes itself, no app needed. 🦞</div>
-    ${backBtn}`;
+    ${backBtn}`);
   wireBack();
 }
 
@@ -675,8 +859,8 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.9.1 · app design by addison hoover';
-  app.innerHTML=`
+  foot.textContent=APP_VER+' · Game Mode · app design by addison hoover';
+  app.innerHTML=L(`
     <div class="card">
       <div class="label">Players <span style="color:#8fa2c2;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
       <div id="players"></div>
@@ -703,8 +887,14 @@ function renderSetup(){
         <div class="sw ${d.noMath?'on':''}"><i></i></div>
       </div>
     </div>
+    <div class="card">
+      <div class="toggle" id="gameModeTog">
+        <div>Game Mode<br><span style="font-size:11px;color:#8fa2c2">${SKIN.name} · tap to switch look</span></div>
+        <div class="gmd">${SKIN.symbol}</div>
+      </div>
+    </div>
     <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
-    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`;
+    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`);
 
   const pw=document.getElementById('players');
   pw.innerHTML=d.names.map((n,i)=>`
@@ -724,6 +914,7 @@ function renderSetup(){
   document.getElementById('custom').oninput=e=>{ d.customStake=e.target.value; document.querySelectorAll('#stakes .chip').forEach(x=>x.classList.remove('on')); };
   document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
   document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
+  document.getElementById('gameModeTog').onclick=()=>{ if(S&&S.phase==='playing') return; modal={type:'gamemode',pick:SKIN.id}; render(); };
   document.getElementById('start').onclick=startGame;
 }
 
@@ -900,7 +1091,7 @@ function renderGame(){
   const canBank=pts>0&&!block;
   const adds=S.turnAdds&&S.turnAdds.length?S.turnAdds.join(' + '):'';
 
-  app.innerHTML=`
+  app.innerHTML=L(`
     ${banner}
     <div class="card">
       <div class="label">Scores${eg?' · 🏁 last licks':''}<button class="lk" id="editOrder">${S.editOrder?'✓ Done':'⇅ Reorder'}</button></div>
@@ -937,7 +1128,7 @@ function renderGame(){
     </div>
 
     ${liabHtml}
-    <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`;
+    <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`);
 
   // scoreboard interactions
   document.querySelectorAll('[data-sel]').forEach(el=>{ if(el.dataset.sel!=='') el.onclick=ev=>{ if(ev.target.closest('[data-log]'))return; if(+el.dataset.sel===S.cur) return; snapshot(); S.cur=+el.dataset.sel; S.accrual=0; S.turnAdds=[]; flash(`${S.players[S.cur].name} is up.`,''); entryPts=''; resetNm(); save(); render(); }; });
@@ -969,7 +1160,19 @@ function renderModal(){
   const old=document.querySelector('.ov'); if(old) old.remove();
   const ov=document.createElement('div'); ov.className='ov';
   let html='';
-  if(modal.type==='menu'){
+  if(modal.type==='gamemode'){
+    const pick=modal.pick||SKIN.id;
+    const rows=Object.values(SKINS).map(s=>`<button class="skinrow ${s.id===pick?'on':''}" data-skin="${s.id}">
+        <span class="sym">${s.symbol}</span><span>${s.name}</span>
+        <span class="chk">${s.id===pick?'✓':''}</span></button>`).join('');
+    html=`<div class="modal"><h2>Game Mode</h2>
+      <p>Pick the table’s look. Scoring and Jackson Mode stay the same.</p>
+      ${rows}
+      <div class="spacer"></div>
+      <button class="btn" id="m_gok">Use this look</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="m_close">Cancel</button></div>`;
+  } else if(modal.type==='menu'){
     html=`<div class="modal"><h2>Menu</h2><p>End now and settle up, or scrap this game and start over.</p>
       <button class="btn gold" id="m_finish">🏁 End game now &amp; tally</button><div class="spacer"></div>
       <button class="btn ghost" id="m_new">Start a new game</button><div class="spacer"></div>
@@ -1083,12 +1286,14 @@ function renderModal(){
       <button class="btn ghost" id="m_back">← All games</button><div class="spacer"></div>
       <button class="btn ghost" id="m_close">Close</button></div>`;
   }
-  ov.innerHTML=html;
+  ov.innerHTML=modal.type==='gamemode'?html:L(html);
   document.querySelector('.wrap').appendChild(ov);
   ov.addEventListener('click',e=>{ if(e.target===ov){ modal=null; render(); } });
   const mEl=ov.querySelector('.modal');
   if(mEl){ mEl.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="Close">✕</button>'); mEl.querySelector('.mx').onclick=()=>{ modal=null; render(); }; }
   const close=document.getElementById('m_close'); if(close) close.onclick=()=>{ modal=null; render(); };
+  ov.querySelectorAll('[data-skin]').forEach(b=>b.onclick=()=>{ modal={type:'gamemode',pick:b.dataset.skin}; render(); });
+  const gok=document.getElementById('m_gok'); if(gok) gok.onclick=()=>acceptGameMode(modal.pick||SKIN.id);
   const back=document.getElementById('m_back'); if(back) back.onclick=()=>{ modal={type:'history'}; render(); };
   ov.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{ modal={type:'histgame',idx:+b.dataset.h}; render(); });
 
@@ -1102,7 +1307,7 @@ function renderModal(){
       if(m) m.textContent='Checking…';
       if(!(await codeExists(code))){ if(m) m.textContent='Code not found — double-check it with the scorekeeper.'; return; }
     }
-    location.href=location.pathname+'?watch='+encodeURIComponent(code);
+    location.href='/?watch='+encodeURIComponent(code);
   };
   const cj=document.getElementById('m_crewjoin');
   if(cj) cj.onclick=doJoin;
@@ -1111,17 +1316,17 @@ function renderModal(){
 
   const sa=document.getElementById('m_shareapp');
   if(sa) sa.onclick=async()=>{
-    const url=location.origin+location.pathname;
-    const text='Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:';
-    if(navigator.share){ try{ await navigator.share({title:'Lobster Dice',text,url}); }catch(e){} }
+    const url=location.origin+'/';
+    const text=L('Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:', true);
+    if(navigator.share){ try{ await navigator.share({title:L('Lobster Dice'),text,url}); }catch(e){} }
     else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('App link copied — text it to the table:\n'+url); }catch(e){ alert('App link:\n'+url); } }
     else alert('App link:\n'+url);
   };
   const cb2=document.getElementById('m_codebox');
   if(cb2){ const shareCode=async()=>{ const c2=crew(); if(!c2) return;
-      const url=location.origin+location.pathname+'?watch='+encodeURIComponent(c2.code);
-      const text=`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`;
-      if(navigator.share){ try{ await navigator.share({title:'Lobster Dice — Claw Watch',text,url}); }catch(e){} }
+      const url=location.origin+'/?watch='+encodeURIComponent(c2.code);
+      const text=L(`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`, true);
+      if(navigator.share){ try{ await navigator.share({title:L('Lobster Dice — Claw Watch'),text,url}); }catch(e){} }
       else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(text+' '+url); alert('Copied — text it to the table.'); }catch(e){ alert(text+' '+url); } }
       else alert(text+' '+url); };
     cb2.onclick=shareCode;
@@ -1176,7 +1381,7 @@ function renderEnd(){
     </div>`;
   }
 
-  app.innerHTML=`
+  app.innerHTML=L(`
     <div class="card" style="text-align:center"><div class="burst" style="font-size:52px">🏆</div>
       <h2 style="font-size:24px">${tie?'It’s a tie!':esc(winner.name)+' wins!'}</h2>
       <p style="color:var(--muted);margin:6px 0 0">${tie?`${winTotal} apiece`:`${winTotal} points · won by ${margin}`}</p></div>
@@ -1190,7 +1395,7 @@ function renderEnd(){
       <div class="stat"><div class="v">${dubs}</div><div class="k">🦞🦞 double lobsters</div></div>
       <div class="stat"><div class="v">${big.v}</div><div class="k">biggest turn · ${esc(big.who)}</div></div>
       <div class="stat"><div class="v">${N()}</div><div class="k">players</div></div></div></div>
-    <button class="btn" id="again">🎲 New game</button>`;
+    <button class="btn" id="again">🎲 New game</button>`);
   document.getElementById('again').onclick=()=>{ wipe(); S=null; newSetup(); render(); };
   const rs=document.getElementById('resetSeries');
   if(rs) rs.onclick=()=>{ if(confirm('Reset the series tab to $0 for everyone?')){ try{ localStorage.removeItem(SSTORE); }catch(e){} render(); } };
@@ -1212,15 +1417,23 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
 
 /* ============================ BOOT ============================ */
 (function(){
-  const sp=document.getElementById('splash');
-  setTimeout(()=>{ sp.classList.add('out'); setTimeout(()=>sp.remove(),380); },1900);
+  const sp0=document.getElementById('splash');
+  splashHTML=sp0?sp0.outerHTML:'';
+  bootSkin();
+  setTimeout(()=>{ const sp=document.getElementById('splash'); if(sp){ sp.classList.add('out'); setTimeout(()=>sp.remove(),380); } },1900);
   if(WATCH){ startWatch(); return; }
   const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
   keepAwake();   // resume screen lock protection if a game was in progress
   trySync();   // push any games that finished offline
   ensureCrew();   // every player owns an always-on Claw Watch code
-  if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+  if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{})); }
 })();
+window.SKIN=SKIN;
+window.SKINS=SKINS;
+window.setSkin=setSkin;
+window.acceptGameMode=acceptGameMode;
+window.playSplash=playSplash;
+window.L=L;
 </script>
 </body>
 </html>

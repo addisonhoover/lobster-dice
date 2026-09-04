@@ -1,11 +1,11 @@
 {
   "name": "lobster-dice",
-  "version": "4.9.1",
+  "version": "4.11.0",
   "private": true,
   "type": "module",
   "description": "Scorepad + stakes tracker for the dice game Lobster Dice",
   "scripts": {
-    "test": "node tests/uitest.mjs && node tests/histtest.mjs && node tests/endtest.mjs && node tests/endtest5.mjs && node tests/seriestest.mjs && node tests/synctest.mjs && node tests/watchtest.mjs && node tests/nomath.mjs",
+    "test": "node tests/uitest.mjs && node tests/histtest.mjs && node tests/endtest.mjs && node tests/endtest5.mjs && node tests/seriestest.mjs && node tests/synctest.mjs && node tests/watchtest.mjs && node tests/nomath.mjs && node tests/gamemode.mjs",
     "serve": "python3 -m http.server 8321",
     "deploy": "vercel --prod --yes"
   },

@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/crimson", "destination": "/index.html" },
+    { "source": "/crimson/:path*", "destination": "/index.html" }
+  ]
+}
