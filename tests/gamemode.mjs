@@ -43,13 +43,15 @@ ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-w
   ok('header is lobster', q(document, '.top h1').textContent === 'Lobster Dice' && q(document, '.top .logo').textContent.includes('🦞'));
   ok('footer notes Game Mode v4.11', document.getElementById('foot').textContent.includes('v4.11') && document.getElementById('foot').textContent.includes('Game Mode'));
   ok('lobster splash still present', !!q(document, '#splash') && !!q(document, '.sp-title-lob') && q(document, '.sp-title-lob').textContent.includes('Lobster'));
-  ok('setup Watch card under Game Mode', (() => {
-    const cards = [...document.querySelectorAll('.card')];
-    const g = cards.findIndex(c => c.querySelector('#gameModeTog'));
-    const w = cards.findIndex(c => c.id === 'watchCard');
-    return !!q(document, '#watchCard') && g >= 0 && w === g + 1;
+  ok('setup has no Watch code card', !q(document, '#watchCard'));
+  ok('Start game sits above the options', (() => {
+    const start = q(document, '#start');
+    const liab = q(document, '#liabTog');
+    const stakes = q(document, '#stakes');
+    return start && liab && stakes &&
+      !!(stakes.compareDocumentPosition(start) & window.Node.DOCUMENT_POSITION_FOLLOWING) &&
+      !!(start.compareDocumentPosition(liab) & window.Node.DOCUMENT_POSITION_FOLLOWING);
   })());
-  ok('Watch card uses Claw Watch label', q(document, '#watchCard').textContent.includes('Claw Watch'));
 }
 
 // --- picker lists both skins; same skin just closes ---
@@ -79,10 +81,11 @@ ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-w
   const { document } = window;
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
-  ok('setup Watch card shows Claw Watch + code', (() => {
-    const card = q(document, '#watchCard');
-    return card && card.textContent.includes('Claw Watch') && card.textContent.includes('CLAW');
-  })());
+  ok('setup has no Watch code card before switch', !q(document, '#watchCard'));
+  click(window, q(document, '#shareBtn'));
+  ok('share menu still shows Claw Watch + code', q(document, '.crewcode-big').textContent === 'CLAW' &&
+    document.body.textContent.includes('Claw Watch'));
+  click(window, q(document, '#m_close'));
   const crewBefore = window.localStorage.getItem('lobsterDice.crew');
   const histBefore = window.localStorage.getItem('lobsterDice.history');
   const storeBefore = window.localStorage.getItem('lobsterDice.v2');
@@ -107,10 +110,7 @@ ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-w
   ok('watch crew persisted', window.localStorage.getItem('lobsterDice.crew') === crewBefore &&
     JSON.parse(crewBefore).code === 'CLAW');
   ok('did not write a live game', window.localStorage.getItem('lobsterDice.v2') === storeBefore);
-  ok('setup Watch card shows Crimson Watch + same code', (() => {
-    const card = q(document, '#watchCard');
-    return card && card.textContent.includes('Crimson Watch') && card.textContent.includes('CLAW');
-  })());
+  ok('setup still has no Watch code card after switch', !q(document, '#watchCard'));
 
   click(window, q(document, '#histBtn'));
   ok('trophy still lists the kept game', document.body.textContent.includes('Addison') && document.body.textContent.includes('🏆'));
@@ -137,7 +137,6 @@ ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-w
   type(window, '#players input[data-i="1"]', 'Kelsey');
   click(window, q(document, '#start'));
   ok('game started hides Game Mode', !!q(document, '.rollchips') && !q(document, '#gameModeTog'));
-  ok('game started hides Watch card', !q(document, '#watchCard'));
 }
 
 // --- scrapconfirm is in-app (no window.confirm); trophy history stays ---
@@ -167,7 +166,7 @@ ok('app chrome points at the SVG not the PNG', html.includes('crimson/elephant-w
   click(window, q(document, '#menu'));
   click(window, q(document, '#m_new'));
   click(window, q(document, '#m_scrap'));
-  ok('scrap returns to setup', !!q(document, '#start') && !!q(document, '#gameModeTog') && !!q(document, '#watchCard'));
+  ok('scrap returns to setup', !!q(document, '#start') && !!q(document, '#gameModeTog') && !q(document, '#watchCard'));
   ok('scrap did not call window.confirm', confirmHits === 0);
   const hist = JSON.parse(window.localStorage.getItem('lobsterDice.history') || '[]');
   ok('trophy history survived scrap', hist.length === 1 && hist[0].id === 'hist-scrap');

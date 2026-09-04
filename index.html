@@ -887,6 +887,8 @@ function renderSetup(){
       <div style="margin-top:10px"><input type="number" id="custom" inputmode="decimal" min="0" step="0.25" placeholder="Custom $ per point" value="${d.customStake}"></div>
       <div class="hint">Winner collects <b>stake × point-gap</b> from each opponent. Anyone finishing on <b>0</b> pays <b>double</b>.</div>
     </div>
+    <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
+    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>
     <div class="card">
       <div class="toggle" id="liabTog">
         <div>Show live “what I’d owe” during play<br><span style="font-size:11px;color:#8fa2c2">optional · some tables find it stressful</span></div>
@@ -904,14 +906,7 @@ function renderSetup(){
         <div>Game Mode<br><span style="font-size:11px;color:#8fa2c2">${SKIN.name} · tap to switch look</span></div>
         <div class="gmd">${SKIN.symbol}</div>
       </div>
-    </div>
-    <div class="card" id="watchCard">
-      <div class="label">${SKIN.watch}</div>
-      <div class="crewcode-big">${crew()&&crew().code?esc(crew().code):'· · · ·'}</div>
-      <div class="hint" style="margin-top:6px;text-align:left">Same 4-digit code on every look.</div>
-    </div>
-    <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
-    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`);
+    </div>`);
 
   const pw=document.getElementById('players');
   pw.innerHTML=d.names.map((n,i)=>`
@@ -933,13 +928,6 @@ function renderSetup(){
   document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
   document.getElementById('gameModeTog').onclick=()=>{ if(S&&S.phase==='playing') return; modal={type:'gamemode',pick:SKIN.id}; render(); };
   document.getElementById('start').onclick=startGame;
-  const hadCrew=!!(crew()&&crew().code);
-  ensureCrew().then(()=>{
-    if(hadCrew || S || WATCH) return;
-    const el=document.querySelector('#watchCard .crewcode-big');
-    const c=crew();
-    if(el && c && c.code) el.textContent=c.code;
-  });
 }
 
 function startGame(){
