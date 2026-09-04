@@ -493,7 +493,14 @@ function bootSkin(){
   setSkin(loadGameMode(),{persist:false});
 }
 
-let splashHTML='', splashTimer=null;
+let splashHTML='', splashTimer=null, splashFadeTimer=null;
+function dismissSplash(done){
+  const sp=document.getElementById('splash');
+  if(!sp){ if(done) done(); return; }
+  sp.classList.add('out');
+  clearTimeout(splashFadeTimer);
+  splashFadeTimer=setTimeout(()=>{ if(sp.parentNode) sp.remove(); if(done) done(); },380);
+}
 function playSplash(done){
   const old=document.getElementById('splash');
   if(old) old.remove();
@@ -503,10 +510,8 @@ function playSplash(done){
   if(!sp){ if(done) done(); return; }
   sp.classList.remove('out');
   clearTimeout(splashTimer);
-  splashTimer=setTimeout(()=>{
-    sp.classList.add('out');
-    setTimeout(()=>{ if(sp.parentNode) sp.remove(); if(done) done(); },380);
-  },1900);
+  clearTimeout(splashFadeTimer);
+  splashTimer=setTimeout(()=>dismissSplash(done),1900);
 }
 function acceptGameMode(id){
   modal=null;
@@ -1424,7 +1429,7 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
   const sp0=document.getElementById('splash');
   splashHTML=sp0?sp0.outerHTML:'';
   bootSkin();
-  setTimeout(()=>{ const sp=document.getElementById('splash'); if(sp){ sp.classList.add('out'); setTimeout(()=>sp.remove(),380); } },1900);
+  splashTimer=setTimeout(()=>dismissSplash(),1900);
   if(WATCH){ startWatch(); return; }
   const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
   keepAwake();   // resume screen lock protection if a game was in progress
