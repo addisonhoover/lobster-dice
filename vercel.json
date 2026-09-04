@@ -1,6 +1,8 @@
 {
   "rewrites": [
     { "source": "/crimson", "destination": "/index.html" },
-    { "source": "/crimson/:path*", "destination": "/index.html" }
+    { "source": "/crimson/:path*", "destination": "/index.html" },
+    { "source": "/renegade", "destination": "/index.html" },
+    { "source": "/renegade/:path*", "destination": "/index.html" }
   ]
 }

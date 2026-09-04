@@ -18,13 +18,20 @@
     var q=new URLSearchParams(location.search||'');
     if(q.get('watch')) return;
     var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
-    if(/^\/crimson(?:\/|$)/i.test(p)) return;
-    if((q.get('skin')||'').toLowerCase()==='crimson') return;
-    if((localStorage.getItem('lobsterDice.gameMode')||'')==='crimson'){
+    if(/^\/(?:crimson|renegade)(?:\/|$)/i.test(p)) return;
+    var skinQ=(q.get('skin')||'').toLowerCase();
+    if(skinQ==='crimson'||skinQ==='renegade') return;
+    var gm=localStorage.getItem('lobsterDice.gameMode')||'';
+    if(gm==='crimson'){
       document.documentElement.classList.add('skin-crimson');
       var m=document.querySelector('meta[name="theme-color"]');
       if(m) m.setAttribute('content','#9E1B32');
       document.title='Crimson Dice — Scorepad';
+    }else if(gm==='renegade'){
+      document.documentElement.classList.add('skin-renegade');
+      var m2=document.querySelector('meta[name="theme-color"]');
+      if(m2) m2.setAttribute('content','#782F40');
+      document.title='Renegade Dice — Scorepad';
     }
   }catch(e){}
 })();
@@ -295,18 +302,65 @@
   @media (max-width:560px){
     html.skin-crimson .sp-ele{left:4vw;top:26vh;height:44vh;max-width:92vw}
   }
-  html.skin-crimson .sp-lob{display:none}
+  html.skin-crimson .sp-lob,html.skin-renegade .sp-lob{display:none}
   html:not(.skin-crimson) .sp-ele{display:none}
-  html.skin-crimson .sp-d2-lob{display:none}
+  html:not(.skin-renegade) .sp-ren{display:none}
+  html.skin-crimson .sp-d2-lob,html.skin-renegade .sp-d2-lob{display:none}
   html:not(.skin-crimson) .sp-d2-ele{display:none}
-  html.skin-crimson .sp-title-lob{display:none}
+  html:not(.skin-renegade) .sp-d2-ren{display:none}
+  html.skin-crimson .sp-title-lob,html.skin-renegade .sp-title-lob{display:none}
   html:not(.skin-crimson) .sp-title-ele{display:none}
+  html:not(.skin-renegade) .sp-title-ren{display:none}
   html.skin-crimson .btn{box-shadow:0 8px 20px rgba(158,27,50,.4)}
   html.skin-crimson .p.active{border-color:#fff;background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(158,27,50,.12));box-shadow:0 0 0 1px rgba(255,255,255,.3)}
   html.skin-crimson .rc:active,html.skin-crimson .rc.on{background:linear-gradient(180deg,#fff,#f0e6e6);color:#6B1222;border-color:transparent}
-  .ele-pip{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
-  .nmcol .ele-pip{width:26px;height:26px;display:block;margin:0 auto}
-  .lobrow .ele-pip{width:18px;height:18px;margin:0 4px -3px 0}
+  /* Renegade Dice — deep garnet / gold / cream (color theme only) */
+  html.skin-renegade{
+    --bg1:#4A1C28; --bg2:#782F40; --bg3:#1a1210;
+    --card:rgba(245,220,160,.08); --card2:rgba(245,220,160,.12);
+    --line:rgba(206,184,136,.22);
+    --coral:#782F40; --coral2:#9a3d52; --gold:#CEB888;
+    --sea:#9a3d52; --good:#F5DCA0; --bad:#e08a8a; --warn:#F5DCA0;
+    --ink:#f8f1e4; --muted:#d4c4b0;
+    background:#4A1C28 linear-gradient(160deg,#4A1C28,#782F40 45%,#1a1210);
+  }
+  html.skin-renegade body{
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #9a3d52 0%, transparent 55%),
+      radial-gradient(900px 600px at 0% 110%, #2a1a12 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-renegade .top h1{background:linear-gradient(90deg,#F5DCA0,#CEB888 55%,#fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  html.skin-renegade .top .logo{filter:drop-shadow(0 4px 8px rgba(206,184,136,.35));width:36px;height:36px;padding:0;display:grid;place-items:center}
+  html.skin-renegade .top .logo img{width:36px;height:36px;object-fit:contain;display:block}
+  html.skin-renegade .accrual .big{background:linear-gradient(180deg,#F5DCA0,#CEB888);-webkit-background-clip:text;background-clip:text}
+  html.skin-renegade .modal{background:linear-gradient(160deg,#5c2432,#1a1210)}
+  html.skin-renegade .modal .rul{color:#f0e6d4}
+  html.skin-renegade input::placeholder{color:#c4b49a}
+  html.skin-renegade #splash{
+    background:radial-gradient(900px 600px at 80% -10%, #9a3d52 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2a1a12 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-renegade .sp-title{background:linear-gradient(90deg,#F5DCA0,#CEB888 40%,#fff);-webkit-background-clip:text;background-clip:text}
+  html.skin-renegade .sp-ren{position:absolute;left:8vw;top:12vh;height:70vh;width:auto;max-width:62vw;
+    object-fit:contain;object-position:center top;
+    filter:drop-shadow(0 0 50px rgba(206,184,136,.38));
+    transform-origin:50% 18%;
+    animation:spRen 1.15s cubic-bezier(.22,.72,.28,1) both}
+  @keyframes spRen{
+    0%{opacity:0;transform:translate(16vw,8vh) rotate(8deg)}
+    46%{opacity:1;transform:translate(1vw,.4vh) rotate(-2deg)}
+    64%{opacity:1;transform:translate(0,1.6vh) rotate(-9deg)}
+    82%{opacity:1;transform:translate(0,.2vh) rotate(-3deg)}
+    100%{opacity:1;transform:translate(0,0) rotate(-4deg)}}
+  @media (max-width:560px){
+    html.skin-renegade .sp-ren{left:10vw;top:16vh;height:52vh;max-width:72vw}
+  }
+  html.skin-renegade .btn{box-shadow:0 8px 20px rgba(120,47,64,.45)}
+  html.skin-renegade .p.active{border-color:#CEB888;background:linear-gradient(90deg,rgba(206,184,136,.2),rgba(120,47,64,.14));box-shadow:0 0 0 1px rgba(206,184,136,.35)}
+  html.skin-renegade .rc:active,html.skin-renegade .rc.on{background:linear-gradient(180deg,#F5DCA0,#CEB888);color:#4A1C28;border-color:transparent}
+  .ele-pip,.ren-pip{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
+  .nmcol .ele-pip,.nmcol .ren-pip{width:26px;height:26px;display:block;margin:0 auto}
+  .lobrow .ele-pip,.lobrow .ren-pip{width:18px;height:18px;margin:0 4px -3px 0}
 </style>
 </head>
 <body>
@@ -379,8 +433,10 @@
 	S31.9,39.85,33.3,39.78z"/>
   </g></svg>
   <img class="sp-ele" id="eleArt" src="crimson/elephant-white.svg" alt="">
+  <img class="sp-ren" id="spearArt" src="renegade/splash-head.png" alt="">
   <div class="sp-title sp-title-lob">Lobster<br>Dice</div>
   <div class="sp-title sp-title-ele">Crimson<br>Dice</div>
+  <div class="sp-title sp-title-ren">Renegade<br>Dice</div>
   <div class="sp-dice sp-d1"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="dieG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dde6f8"/></linearGradient></defs>
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
@@ -393,6 +449,10 @@
   <div class="sp-dice sp-d2 sp-d2-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <rect x="2" y="2" width="60" height="60" rx="14" fill="#9E1B32"/>
     <image href="crimson/elephant-white.svg" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
+  </svg></div>
+  <div class="sp-dice sp-d2 sp-d2-ren"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="#782F40"/>
+    <image href="renegade/pip.svg" x="20" y="8" width="24" height="48" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
 </div>
 <div class="wrap">
@@ -419,6 +479,10 @@ const APP_VER='v4.11';
 const GMSTORE='lobsterDice.gameMode';
 const ELE='crimson/elephant-white.svg';
 const ELE_PIP='<img class="ele-pip" src="'+ELE+'" alt="">';
+const REN='renegade/pip.svg';
+const REN_MARK='renegade/header-mark.svg';
+const REN_PIP='<img class="ren-pip" src="'+REN+'" alt="">';
+const REN_SYM='<img class="ren-pip" src="'+REN_MARK+'" alt="">';
 
 const SKINS={
   lobster:{id:'lobster',name:'Lobster Dice',symbol:'🦞',themeClass:'',themeColor:'#0b1f3a',
@@ -426,14 +490,18 @@ const SKINS={
     splash:'Lobster<br>Dice',manifest:'manifest.webmanifest',icon:'icon-192.png',apple:'apple-touch-icon.png'},
   crimson:{id:'crimson',name:'Crimson Dice',symbol:ELE_PIP,themeClass:'skin-crimson',themeColor:'#9E1B32',
     title:'Crimson Dice — Scorepad',short:'Crimson Dice',watch:'Crimson Watch',
-    splash:'Crimson<br>Dice',manifest:'crimson/manifest.webmanifest',icon:'crimson/icon-192.png',apple:'crimson/icon-192.png'}
+    splash:'Crimson<br>Dice',manifest:'crimson/manifest.webmanifest',icon:'crimson/icon-192.png',apple:'crimson/icon-192.png'},
+  renegade:{id:'renegade',name:'Renegade Dice',symbol:REN_SYM,themeClass:'skin-renegade',themeColor:'#782F40',
+    title:'Renegade Dice — Scorepad',short:'Renegade Dice',watch:'Renegade Watch',
+    splash:'Renegade<br>Dice',manifest:'renegade/manifest.webmanifest',icon:'renegade/icon-192.png',apple:'renegade/apple-touch-icon.png'}
 };
 
 function isSkinDeepLink(){
   const path=(location.pathname||'/').replace(/\/+$/,'')||'/';
   const q=new URLSearchParams(location.search||'');
-  if((q.get('skin')||'').toLowerCase()==='crimson') return true;
-  return /^\/crimson(?:\/|$)/i.test(path);
+  const skin=(q.get('skin')||'').toLowerCase();
+  if(skin==='crimson'||skin==='renegade') return true;
+  return /^\/(?:crimson|renegade)(?:\/|$)/i.test(path);
 }
 function loadGameMode(){
   try{ const id=localStorage.getItem(GMSTORE); if(id&&SKINS[id]) return id; }catch(e){}
@@ -443,8 +511,8 @@ function saveGameMode(id){ try{ localStorage.setItem(GMSTORE,id); }catch(e){} }
 
 let SKIN=SKINS.lobster;
 function L(s, plain){
-  if(s==null||SKIN.id!=='crimson') return s;
-  return String(s)
+  if(s==null||SKIN.id==='lobster') return s;
+  if(SKIN.id==='crimson') return String(s)
     .replace(/Lobster Dice/g,'Crimson Dice')
     .replace(/Claw Watch/g,'Crimson Watch')
     .replace(/double-lobster/g,'double-elephant')
@@ -459,10 +527,27 @@ function L(s, plain){
     .replace(/Lobster/g,'Elephant')
     .replace(/🦞🦞/g, plain ? '' : ELE_PIP+ELE_PIP)
     .replace(/🦞/g, plain ? '' : ELE_PIP);
+  if(SKIN.id==='renegade') return String(s)
+    .replace(/Lobster Dice/g,'Renegade Dice')
+    .replace(/Claw Watch/g,'Renegade Watch')
+    .replace(/double-lobster/g,'double-spear')
+    .replace(/Double lobster/g,'Double spear')
+    .replace(/double lobsters/g,'double spears')
+    .replace(/double lobster/g,'double spear')
+    .replace(/lobsters/g,'spears')
+    .replace(/Lobsters/g,'Spears')
+    .replace(/a lobster/g,'a spear')
+    .replace(/A lobster/g,'A spear')
+    .replace(/lobster/g,'spear')
+    .replace(/Lobster/g,'Spear')
+    .replace(/🦞🦞/g, plain ? '' : REN_PIP+REN_PIP)
+    .replace(/🦞/g, plain ? '' : REN_PIP);
+  return s;
 }
 function applySkinChrome(){
   const s=SKIN;
   document.documentElement.classList.toggle('skin-crimson', s.id==='crimson');
+  document.documentElement.classList.toggle('skin-renegade', s.id==='renegade');
   document.title=s.title;
   const tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.setAttribute('content',s.themeColor);
   const ap=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(ap) ap.setAttribute('content',s.short);
@@ -470,7 +555,11 @@ function applySkinChrome(){
   const icon=document.querySelector('link[rel="icon"]'); if(icon) icon.setAttribute('href',s.icon);
   const apple=document.querySelector('link[rel="apple-touch-icon"]'); if(apple) apple.setAttribute('href',s.apple);
   const logo=document.querySelector('.top .logo');
-  if(logo) logo.innerHTML=s.id==='crimson'?'<img src="'+ELE+'" alt="">':'🦞';
+  if(logo){
+    if(s.id==='crimson') logo.innerHTML='<img src="'+ELE+'" alt="">';
+    else if(s.id==='renegade') logo.innerHTML='<img src="'+REN_MARK+'" alt="">';
+    else logo.innerHTML='🦞';
+  }
   const h1=document.querySelector('.top h1'); if(h1) h1.textContent=s.short;
 }
 function setSkin(id, opts){
