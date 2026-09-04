@@ -12,18 +12,42 @@
 <meta name="apple-mobile-web-app-title" content="Lobster Dice" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="icon" href="icon-192.png" type="image/png" />
+<script>
+(function(){
+  try{
+    var q=new URLSearchParams(location.search||'');
+    if(q.get('watch')) return;
+    var p=(location.pathname||'/').replace(/\/+$/,'')||'/';
+    if(/^\/(?:crimson|renegade)(?:\/|$)/i.test(p)) return;
+    var skinQ=(q.get('skin')||'').toLowerCase();
+    if(skinQ==='crimson'||skinQ==='renegade') return;
+    var gm=localStorage.getItem('lobsterDice.gameMode')||'';
+    if(gm==='crimson'){
+      document.documentElement.classList.add('skin-crimson');
+      var m=document.querySelector('meta[name="theme-color"]');
+      if(m) m.setAttribute('content','#9E1B32');
+      document.title='Crimson Dice — Scorepad';
+    }else if(gm==='renegade'){
+      document.documentElement.classList.add('skin-renegade');
+      var m2=document.querySelector('meta[name="theme-color"]');
+      if(m2) m2.setAttribute('content','#782F40');
+      document.title='Renegade Dice — Scorepad';
+    }
+  }catch(e){}
+})();
+</script>
 <style>
   :root{
     --bg1:#0b1f3a; --bg2:#12325c; --bg3:#1b0e2b;
     --card:rgba(255,255,255,.06); --card2:rgba(255,255,255,.10);
     --line:rgba(255,255,255,.12);
     --coral:#ff5a4d; --coral2:#ff8566; --gold:#ffcf5c;
-    --sea:#3fd0c9; --good:#57e389; --bad:#ff5a4d; --warn:#ffcf5c;
+    --sea:#3fd0c9; --good:#57e389; --success:#57e389; --bad:#ff5a4d; --warn:#ffcf5c;
     --ink:#f3f6ff; --muted:#a9bad6;
     --shadow:0 10px 40px rgba(0,0,0,.45);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;padding:0}
+  html,body{margin:0;padding:0;min-height:100%;min-height:100vh;min-height:100dvh;min-height:-webkit-fill-available}
   /* solid navy base: iOS extends COLORS (not gradients) into the status bar / overscroll zones.
      Navy matches the app's top edge; the gradient rides on top for anywhere images do render. */
   html{background:#0b1f3a linear-gradient(160deg,#0b1f3a,#12325c 45%,#1b0e2b)}
@@ -132,14 +156,17 @@
   .rc:active{transform:scale(.95);background:linear-gradient(180deg,#54e0d9,#28b3ab);color:#04201e}
   .rc.on{background:linear-gradient(180deg,#54e0d9,#28b3ab);color:#04201e;border-color:transparent}
   .nmwrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .nmdie{border:1.5px solid rgba(255,90,77,.85);border-radius:14px;padding:8px 6px 10px;box-sizing:border-box}
+  html.skin-crimson .nmdie{border-color:rgba(206,184,136,.95)}
+  html.skin-renegade .nmdie{border-color:rgba(255,255,255,.88)}
   .nmlab{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;margin-bottom:6px}
   .nmcol{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
   .nmcol .rc{padding:13px 0;font-size:18px}
-  .plus{display:inline-block;font-size:30px;font-weight:900;color:var(--good);vertical-align:super;margin-left:7px;-webkit-text-fill-color:var(--good);animation:pluspop .25s ease-out}
+  .plus{display:inline-block;font-size:30px;font-weight:900;color:var(--success);vertical-align:super;margin-left:7px;-webkit-text-fill-color:var(--success);animation:pluspop .25s ease-out}
   @keyframes pluspop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:scale(1)}}
   .endlink{display:block;width:100%;background:none;border:none;color:#8499bb;font-size:12px;font-weight:700;padding:10px;margin-top:2px;text-align:center}
   .msg{text-align:center;font-weight:700;font-size:13px;min-height:18px;margin:8px 2px;color:var(--muted)}
-  .msg.good{color:var(--good)} .msg.bad{color:var(--bad)} .msg.warn{color:var(--warn)}
+  .msg.good{color:var(--success)} .msg.bad{color:var(--bad)} .msg.warn{color:var(--warn)}
   .gate{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12px;font-weight:800;color:var(--warn);margin:2px 0 10px;text-align:center}
   .lobrow{display:flex;gap:10px;margin-top:10px}
   .lobrow button{flex:1;padding:14px 6px;border-radius:14px;font-weight:800;font-size:14px;line-height:1.2}
@@ -180,8 +207,10 @@
   .ledger{padding:14px;border-radius:14px;background:var(--card2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px}
   .ledger .txt{font-weight:700;font-size:14px}
   .ledger .amt{font-size:20px;font-weight:900;color:var(--good);white-space:nowrap}
+  html.skin-crimson .ledger .amt,html.skin-renegade .ledger .amt{color:var(--ink)}
+  html.skin-crimson .ledger.z .amt,html.skin-renegade .ledger.z .amt{color:var(--ink)}
   .ledger.z{background:linear-gradient(90deg,rgba(255,90,77,.22),rgba(255,90,77,.05));border:1px solid rgba(255,90,77,.4)}
-  .ledger.z .amt{color:var(--coral)}
+  .ledger.z .amt{color:var(--ink)}
   .zbadge{font-size:9px;font-weight:900;color:#fff;background:var(--coral);padding:3px 7px;border-radius:999px;letter-spacing:.04em;display:inline-block;margin-top:3px}
   .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .stat{background:var(--card2);border-radius:12px;padding:12px}
@@ -189,14 +218,16 @@
   .stat .k{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
   .spacer{height:8px}.footlink{text-align:center;font-size:11px;color:#8499bb;margin-top:18px}
   /* splash */
-  #splash{position:fixed;inset:0;z-index:100;overflow:hidden;pointer-events:none;
+  #splash{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;z-index:100;overflow:hidden;pointer-events:none;
+    width:100%;width:100vw;height:100%;height:100vh;height:100dvh;
+    min-height:100vh;min-height:100dvh;min-height:-webkit-fill-available;
     background:radial-gradient(900px 600px at 80% -10%, #23407a 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #3a1140 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
     transition:opacity .35s ease}
   #splash.out{opacity:0}
   /* massive lobster towering on the right — whole animal visible, legs grazing the edge */
   /* colossal lobster, mostly off-frame right — only its left claw/side looms into view */
   .sp-lob{position:absolute;left:6vw;top:30vh;height:140vh;width:auto;
-    filter:drop-shadow(0 0 60px rgba(255,90,77,.35));
+    filter:drop-shadow(0 12px 28px rgba(255,90,77,.22));
     animation:spLob .7s ease-out both}
   @keyframes spLob{0%{opacity:0;transform:translate(14vw,10vh)}100%{opacity:1;transform:translate(0,0)}}
   /* title: upper-middle left, stacked — big, using the negative space */
@@ -205,7 +236,7 @@
     animation:spTitle .55s .1s cubic-bezier(.34,1.56,.64,1) both}
   @keyframes spTitle{0%{opacity:0;transform:translateY(22px) scale(.9)}100%{opacity:1;transform:translateY(0) scale(1)}}
   /* dice roll in from the left, landing just below the title */
-  .sp-dice{position:absolute;top:calc(9vh + 168px);line-height:1;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+  .sp-dice{position:absolute;top:calc(9vh + 168px);line-height:1;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
   .sp-dice svg{width:62px;height:62px;display:block}
   .sp-d1{left:8vw;animation:spD1 1.05s .3s linear both}
   .sp-d2{left:29vw;animation:spD2 1.15s .42s linear both}
@@ -228,6 +259,119 @@
     86%{transform:translate(.4vw,-16px) rotate(-18deg)}
     94%{transform:translate(0,2px) rotate(6deg)}
     100%{transform:translate(0,0) rotate(11deg)}}
+  /* Game Mode picker */
+  .gmd{width:46px;height:28px;flex:0 0 46px;display:grid;place-items:center;font-size:22px;line-height:1}
+  .gmd img{width:26px;height:26px;object-fit:contain;display:block}
+  .skinrow{display:flex;align-items:center;gap:12px;width:100%;padding:14px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line);margin-bottom:8px;font-weight:800;font-size:16px;text-align:left;color:var(--ink)}
+  .skinrow.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+  .skinrow .sym{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;font-size:22px}
+  .skinrow .sym img{width:28px;height:28px;object-fit:contain;display:block}
+  .skinrow .chk{margin-left:auto;font-size:16px;color:var(--gold)}
+  /* Crimson Dice skin — deep crimson / white / charcoal (color theme only) */
+  html.skin-crimson{
+    --bg1:#6B1222; --bg2:#9E1B32; --bg3:#1c1c1c;
+    --card:rgba(255,255,255,.08); --card2:rgba(255,255,255,.12);
+    --line:rgba(255,255,255,.16);
+    --coral:#9E1B32; --coral2:#c42b44; --gold:#f5f0e8;
+    --sea:#c42b44; --good:#e8e8e8; --bad:#ff8a8a; --warn:#f5e6c8;
+    --ink:#ffffff; --muted:#d4c4c6;
+    background:#6B1222 linear-gradient(160deg,#6B1222,#9E1B32 45%,#1c1c1c);
+  }
+  html.skin-crimson body{
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #c42b44 0%, transparent 55%),
+      radial-gradient(900px 600px at 0% 110%, #2b2b2b 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-crimson .top h1{background:linear-gradient(90deg,#fff,#f7d4d8 55%,#fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  html.skin-crimson .top .logo{filter:drop-shadow(0 4px 8px rgba(255,255,255,.25));width:36px;height:36px;padding:0;display:grid;place-items:center}
+  html.skin-crimson .top .logo img{width:36px;height:36px;object-fit:contain;display:block}
+  html.skin-crimson .accrual .big{background:linear-gradient(180deg,#fff,#f0d0d4);-webkit-background-clip:text;background-clip:text}
+  html.skin-crimson .modal{background:linear-gradient(160deg,#7a1526,#1c1c1c)}
+  html.skin-crimson .modal .rul{color:#f0e4e6}
+  html.skin-crimson input::placeholder{color:#c4a8ac}
+  html.skin-crimson #splash{
+    background:radial-gradient(900px 600px at 80% -10%, #c42b44 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2b2b2b 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-crimson .sp-title{background:linear-gradient(90deg,#fff,#f7d4d8 40%,#fff);-webkit-background-clip:text;background-clip:text}
+  html.skin-crimson .sp-ele{position:absolute;right:-95vw;left:auto;bottom:-18vh;top:auto;height:110vh;width:auto;max-width:none;
+    object-fit:contain;object-position:60% 35%;
+    filter:drop-shadow(0 14px 32px rgba(0,0,0,.35));
+    transform-origin:55% 40%;
+    animation:spEle 1.15s cubic-bezier(.22,.72,.28,1) both}
+  /* head-in from the side, then a small nod and settle — not a one-shot rotate */
+  @keyframes spEle{
+    0%{opacity:0;transform:translate(26vw,20vh) rotate(8deg)}
+    46%{opacity:1;transform:translate(4vw,4vh) rotate(-1deg)}
+    64%{opacity:1;transform:translate(1.5vw,1.5vh) rotate(-7deg)}
+    82%{opacity:1;transform:translate(.5vw,.6vh) rotate(-4deg)}
+    100%{opacity:1;transform:translate(0,0) rotate(-5deg)}}
+  html.skin-crimson .sp-lob,html.skin-renegade .sp-lob{display:none}
+  html:not(.skin-crimson) .sp-ele{display:none}
+  html:not(.skin-renegade) .sp-ren{display:none}
+  html.skin-crimson .sp-d2-lob,html.skin-renegade .sp-d2-lob{display:none}
+  html:not(.skin-crimson) .sp-d2-ele{display:none}
+  html:not(.skin-renegade) .sp-d2-ren{display:none}
+  html.skin-crimson .sp-d1-lob,html.skin-renegade .sp-d1-lob{display:none}
+  html:not(.skin-crimson) .sp-d1-ele{display:none}
+  html:not(.skin-renegade) .sp-d1-ren{display:none}
+  html.skin-crimson .sp-title-lob,html.skin-renegade .sp-title-lob{display:none}
+  html:not(.skin-crimson) .sp-title-ele{display:none}
+  html:not(.skin-renegade) .sp-title-ren{display:none}
+  html.skin-crimson .btn{box-shadow:0 8px 20px rgba(158,27,50,.4)}
+  html.skin-crimson .p.active{border-color:#fff;background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(158,27,50,.12));box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+  html.skin-crimson .rc:active,html.skin-crimson .rc.on{background:linear-gradient(180deg,#fff,#f0e6e6);color:#6B1222;border-color:transparent}
+  /* Renegade Dice — deep garnet / gold / cream (color theme only) */
+  html.skin-renegade{
+    --bg1:#4A1C28; --bg2:#782F40; --bg3:#1a1210;
+    --card:rgba(245,220,160,.08); --card2:rgba(245,220,160,.12);
+    --line:rgba(206,184,136,.22);
+    --coral:#782F40; --coral2:#9a3d52; --gold:#CEB888;
+    --sea:#9a3d52; --good:#F5DCA0; --bad:#e08a8a; --warn:#F5DCA0;
+    --ink:#f8f1e4; --muted:#d4c4b0;
+    background:#4A1C28 linear-gradient(160deg,#4A1C28,#782F40 45%,#1a1210);
+  }
+  html.skin-renegade body{
+    background:
+      radial-gradient(1200px 700px at 80% -10%, #9a3d52 0%, transparent 55%),
+      radial-gradient(900px 600px at 0% 110%, #2a1a12 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-renegade .top h1{background:linear-gradient(90deg,#F5DCA0,#CEB888 55%,#fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  html.skin-renegade .top .logo{filter:drop-shadow(0 4px 8px rgba(206,184,136,.35));width:36px;height:36px;padding:0;display:grid;place-items:center}
+  html.skin-renegade .top .logo img{width:36px;height:36px;object-fit:contain;display:block}
+  html.skin-renegade .accrual .big{background:linear-gradient(180deg,#F5DCA0,#CEB888);-webkit-background-clip:text;background-clip:text}
+  html.skin-renegade .modal{background:linear-gradient(160deg,#5c2432,#1a1210)}
+  html.skin-renegade .modal .rul{color:#f0e6d4}
+  html.skin-renegade input::placeholder{color:#c4b49a}
+  html.skin-renegade #splash{
+    background:radial-gradient(900px 600px at 80% -10%, #9a3d52 0%, transparent 55%),radial-gradient(700px 500px at 0% 110%, #2a1a12 0%, transparent 55%),linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  }
+  html.skin-renegade .sp-title{background:linear-gradient(90deg,#F5DCA0,#CEB888 40%,#fff);-webkit-background-clip:text;background-clip:text}
+  html.skin-renegade .sp-ren{position:absolute;right:-34vw;left:auto;bottom:-22vh;top:auto;height:125vh;width:auto;max-width:none;
+    object-fit:contain;object-position:right bottom;
+    filter:drop-shadow(0 14px 28px rgba(0,0,0,.4));
+    transform-origin:80% 85%;
+    animation:spRen 1.15s cubic-bezier(.22,.72,.28,1) both}
+  /* Wider screens: keep heroes visible (phone bleed is too aggressive) */
+  @media (min-width:701px){
+    html.skin-crimson .sp-ele{right:-10vw;bottom:-6vh;height:100vh;max-width:70vw;object-position:70% 40%}
+    html.skin-renegade .sp-ren{right:-8vw;bottom:-8vh;height:105vh;max-width:58vw}
+  }
+
+  @keyframes spRen{
+    0%{opacity:0;transform:translate(26vw,20vh) rotate(10deg)}
+    46%{opacity:1;transform:translate(4vw,4vh) rotate(-1deg)}
+    64%{opacity:1;transform:translate(1vw,1.2vh) rotate(-6deg)}
+    82%{opacity:1;transform:translate(0,.3vh) rotate(-3deg)}
+    100%{opacity:1;transform:translate(0,0) rotate(-4deg)}}
+  
+  html.skin-renegade .btn{box-shadow:0 8px 20px rgba(120,47,64,.45)}
+  html.skin-renegade .p.active{border-color:#CEB888;background:linear-gradient(90deg,rgba(206,184,136,.2),rgba(120,47,64,.14));box-shadow:0 0 0 1px rgba(206,184,136,.35)}
+  html.skin-renegade .rc:active,html.skin-renegade .rc.on{background:linear-gradient(180deg,#F5DCA0,#CEB888);color:#4A1C28;border-color:transparent}
+  .ele-pip,.ren-pip{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
+  .nmcol .ele-pip,.nmcol .ren-pip{width:26px;height:26px;display:block;margin:0 auto}
+  .lobrow .ele-pip,.lobrow .ren-pip{width:18px;height:18px;margin:0 4px -3px 0}
 </style>
 </head>
 <body>
@@ -299,15 +443,35 @@
 <path style="fill:#A42615;" d="M33.3,39.78c0.92-0.05,3.8,0.42,3.73-1.55s-3.73-1.55-4.36-1.55c-0.63,0-2.75,0.35-2.75,1.76
 	S31.9,39.85,33.3,39.78z"/>
   </g></svg>
-  <div class="sp-title">Lobster<br>Dice</div>
-  <div class="sp-dice sp-d1"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <img class="sp-ele" id="eleArt" src="crimson/elephant-splash.png" alt="">
+  <img class="sp-ren" id="spearArt" src="renegade/splash-head.png" alt="">
+  <div class="sp-title sp-title-lob">Lobster<br>Dice</div>
+  <div class="sp-title sp-title-ele">Crimson<br>Dice</div>
+  <div class="sp-title sp-title-ren">Renegade<br>Dice</div>
+  <div class="sp-dice sp-d1 sp-d1-lob"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="dieG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dde6f8"/></linearGradient></defs>
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
     <g fill="#e03a30"><circle cx="17" cy="17" r="6"/><circle cx="47" cy="17" r="6"/><circle cx="32" cy="32" r="6"/><circle cx="17" cy="47" r="6"/><circle cx="47" cy="47" r="6"/></g>
   </svg></div>
-  <div class="sp-dice sp-d2"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <div class="sp-dice sp-d1 sp-d1-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="#ffffff"/>
+    <g fill="#9E1B32"><circle cx="17" cy="17" r="6"/><circle cx="47" cy="17" r="6"/><circle cx="32" cy="32" r="6"/><circle cx="17" cy="47" r="6"/><circle cx="47" cy="47" r="6"/></g>
+  </svg></div>
+  <div class="sp-dice sp-d1 sp-d1-ren"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="#ffffff"/>
+    <g fill="#782F40"><circle cx="17" cy="17" r="6"/><circle cx="47" cy="17" r="6"/><circle cx="32" cy="32" r="6"/><circle cx="17" cy="47" r="6"/><circle cx="47" cy="47" r="6"/></g>
+  </svg></div>
+  <div class="sp-dice sp-d2 sp-d2-lob"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
     <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#dieG)"/>
     <use href="#lobArt" transform="translate(13,11) scale(0.30)"/>
+  </svg></div>
+  <div class="sp-dice sp-d2 sp-d2-ele"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="#ffffff"/>
+    <image href="crimson/elephant-crimson.svg" x="8" y="14" width="48" height="36" preserveAspectRatio="xMidYMid meet"/>
+  </svg></div>
+  <div class="sp-dice sp-d2 sp-d2-ren"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="#ffffff"/>
+    <image href="renegade/pip-garnet.png" x="14" y="10" width="36" height="44" preserveAspectRatio="xMidYMid meet"/>
   </svg></div>
 </div>
 <div class="wrap">
@@ -329,7 +493,144 @@
 /* ============================ CONSTANTS ============================ */
 const GATE=21, NINE69=69, WIN=101, FIRE=75, STORE='lobsterDice.v2';
 const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survives crossing midnight)
-const STAKES=[0.01,0.10,0.15,0.25,1,5,10,100];
+const STAKES=[0.01,0.05,0.10,0.25,1,5,10,100];
+const APP_VER='v4.11';
+const GMSTORE='lobsterDice.gameMode';
+const ELE='crimson/elephant-white.svg';
+const ELE_PIP='<img class="ele-pip" src="'+ELE+'" alt="">';
+const REN='renegade/pip.png';
+const REN_MARK='renegade/header-mark.png';
+const REN_PIP='<img class="ren-pip" src="'+REN+'" alt="">';
+const REN_SYM='<img class="ren-pip" src="'+REN_MARK+'" alt="">';
+
+const SKINS={
+  lobster:{id:'lobster',name:'Lobster Dice',symbol:'🦞',themeClass:'',themeColor:'#0b1f3a',
+    title:'Lobster Dice — Scorepad',short:'Lobster Dice',watch:'Claw Watch',
+    splash:'Lobster<br>Dice',manifest:'manifest.webmanifest',icon:'icon-192.png',apple:'apple-touch-icon.png'},
+  crimson:{id:'crimson',name:'Crimson Dice',symbol:ELE_PIP,themeClass:'skin-crimson',themeColor:'#9E1B32',
+    title:'Crimson Dice — Scorepad',short:'Crimson Dice',watch:'Crimson Watch',
+    splash:'Crimson<br>Dice',manifest:'crimson/manifest.webmanifest',icon:'crimson/icon-192.png',apple:'crimson/icon-192.png'},
+  renegade:{id:'renegade',name:'Renegade Dice',symbol:REN_SYM,themeClass:'skin-renegade',themeColor:'#782F40',
+    title:'Renegade Dice — Scorepad',short:'Renegade Dice',watch:'Renegade Watch',
+    splash:'Renegade<br>Dice',manifest:'renegade/manifest.webmanifest',icon:'renegade/icon-192.png',apple:'renegade/apple-touch-icon.png'}
+};
+
+function isSkinDeepLink(){
+  const path=(location.pathname||'/').replace(/\/+$/,'')||'/';
+  const q=new URLSearchParams(location.search||'');
+  const skin=(q.get('skin')||'').toLowerCase();
+  if(skin==='crimson'||skin==='renegade') return true;
+  return /^\/(?:crimson|renegade)(?:\/|$)/i.test(path);
+}
+function loadGameMode(){
+  try{ const id=localStorage.getItem(GMSTORE); if(id&&SKINS[id]) return id; }catch(e){}
+  return 'lobster';
+}
+function saveGameMode(id){ try{ localStorage.setItem(GMSTORE,id); }catch(e){} }
+
+let SKIN=SKINS.lobster;
+function L(s, plain){
+  if(s==null||SKIN.id==='lobster') return s;
+  if(SKIN.id==='crimson') return String(s)
+    .replace(/Lobster Dice/g,'Crimson Dice')
+    .replace(/Claw Watch/g,'Crimson Watch')
+    .replace(/double-lobster/g,'double-elephant')
+    .replace(/Double lobster/g,'Double elephant')
+    .replace(/double lobsters/g,'double elephants')
+    .replace(/double lobster/g,'double elephant')
+    .replace(/lobsters/g,'elephants')
+    .replace(/Lobsters/g,'Elephants')
+    .replace(/a lobster/g,'an elephant')
+    .replace(/A lobster/g,'An elephant')
+    .replace(/lobster/g,'elephant')
+    .replace(/Lobster/g,'Elephant')
+    .replace(/🦞🦞/g, plain ? '' : ELE_PIP+ELE_PIP)
+    .replace(/🦞/g, plain ? '' : ELE_PIP);
+  if(SKIN.id==='renegade') return String(s)
+    .replace(/Lobster Dice/g,'Renegade Dice')
+    .replace(/Claw Watch/g,'Renegade Watch')
+    .replace(/double-lobster/g,'double-spear')
+    .replace(/Double lobster/g,'Double spear')
+    .replace(/double lobsters/g,'double spears')
+    .replace(/double lobster/g,'double spear')
+    .replace(/lobsters/g,'spears')
+    .replace(/Lobsters/g,'Spears')
+    .replace(/a lobster/g,'a spear')
+    .replace(/A lobster/g,'A spear')
+    .replace(/lobster/g,'spear')
+    .replace(/Lobster/g,'Spear')
+    .replace(/🦞🦞/g, plain ? '' : REN_PIP+REN_PIP)
+    .replace(/🦞/g, plain ? '' : REN_PIP);
+  return s;
+}
+function applySkinChrome(){
+  const s=SKIN;
+  document.documentElement.classList.toggle('skin-crimson', s.id==='crimson');
+  document.documentElement.classList.toggle('skin-renegade', s.id==='renegade');
+  document.title=s.title;
+  const tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.setAttribute('content',s.themeColor);
+  const ap=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(ap) ap.setAttribute('content',s.short);
+  const man=document.querySelector('link[rel="manifest"]'); if(man) man.setAttribute('href',s.manifest);
+  const icon=document.querySelector('link[rel="icon"]'); if(icon) icon.setAttribute('href',s.icon);
+  const apple=document.querySelector('link[rel="apple-touch-icon"]'); if(apple) apple.setAttribute('href',s.apple);
+  const logo=document.querySelector('.top .logo');
+  if(logo){
+    if(s.id==='crimson') logo.innerHTML='<img src="'+ELE+'" alt="">';
+    else if(s.id==='renegade') logo.innerHTML='<img src="'+REN_MARK+'" alt="">';
+    else logo.innerHTML='🦞';
+  }
+  const h1=document.querySelector('.top h1'); if(h1) h1.textContent=s.short;
+}
+function setSkin(id, opts){
+  const o=opts||{};
+  SKIN=SKINS[id]||SKINS.lobster;
+  window.SKIN=SKIN;
+  if(o.persist!==false) saveGameMode(SKIN.id);
+  applySkinChrome();
+  return SKIN;
+}
+function bootSkin(){
+  if(new URLSearchParams(location.search||'').get('watch')){ setSkin('lobster',{persist:false}); return; }
+  if(isSkinDeepLink()){
+    setSkin('lobster',{persist:false});
+    try{
+      const q=new URLSearchParams(location.search||'');
+      q.delete('skin'); q.delete('kit');
+      const qs=q.toString();
+      history.replaceState(null,'','/'+(qs?'?'+qs:''));
+    }catch(e){}
+    return;
+  }
+  setSkin(loadGameMode(),{persist:false});
+}
+
+let splashHTML='', splashTimer=null, splashFadeTimer=null;
+function dismissSplash(done){
+  const sp=document.getElementById('splash');
+  if(!sp){ if(done) done(); return; }
+  sp.classList.add('out');
+  clearTimeout(splashFadeTimer);
+  splashFadeTimer=setTimeout(()=>{ if(sp.parentNode) sp.remove(); if(done) done(); },380);
+}
+function playSplash(done){
+  const old=document.getElementById('splash');
+  if(old) old.remove();
+  if(!splashHTML){ if(done) done(); return; }
+  document.body.insertAdjacentHTML('afterbegin', splashHTML);
+  const sp=document.getElementById('splash');
+  if(!sp){ if(done) done(); return; }
+  sp.classList.remove('out');
+  clearTimeout(splashTimer);
+  clearTimeout(splashFadeTimer);
+  splashTimer=setTimeout(()=>dismissSplash(done),1900);
+}
+function acceptGameMode(id){
+  modal=null;
+  if(!SKINS[id] || id===SKIN.id){ render(); return; }
+  setSkin(id,{persist:true});
+  render();
+  playSplash();
+}
 
 /* ============================ STATE ============================ */
 let S=null, history=[], modal=null, entryPts='';
@@ -341,7 +642,7 @@ document.getElementById('histBtn').onclick=()=>{ modal={type:'history'}; render(
 document.getElementById('shareBtn').onclick=()=>{ modal={type:'share'}; render(); };
 
 let msg='', msgClass='';
-function flash(m,c){ msg=m; msgClass=c||''; }
+function flash(m,c){ msg=L(m); msgClass=c||''; }
 
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(S)); }catch(e){} pushLive(); }
 
@@ -412,6 +713,7 @@ function pushLive(){
   liveTimer=setTimeout(async()=>{
     try{
       const state={ phase:S.phase, stake:S.stake, ts:Date.now(), cur:S.cur, accrual:S.accrual||0,
+        skin:SKIN.id,
         players:S.players.map(p=>({name:p.name,banked:p.banked,busts:p.busts,dubs:p.dubs})),
         endgame:S.endgame?{bestTotal:S.endgame.bestTotal,bestPlayer:S.endgame.bestPlayer,round:S.endgame.round,left:S.endgame.q.length}:null };
       await fetch(`${SUPA_URL}/rest/v1/live`,{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({code:c.code,state,updated_at:new Date().toISOString()})});
@@ -529,6 +831,7 @@ async function fetchWatch(){
     if(r.ok){ const a=await r.json(); watchData=a.length?a[0]:null; }
   }catch(e){}
   const st=watchData&&watchData.state;
+  if(st&&st.skin&&SKINS[st.skin]&&st.skin!==SKIN.id) setSkin(st.skin,{persist:true});
   if(st&&st.phase==='playing') watchGames=null;                 // new game running — refetch ledger at its end
   if(st&&st.phase==='ended'&&!watchGames){
     try{
@@ -539,16 +842,17 @@ async function fetchWatch(){
   if(st&&st.phase==='playing') keepAwake(); else releaseAwake();   // watchers stay awake only while the game is live
   render();
 }
-function startWatch(){ foot.textContent='🦞 Claw Watch · '+WATCH; fetchWatch(); setInterval(fetchWatch,4000); }
+function startWatch(){ fetchWatch(); setInterval(fetchWatch,4000); }
 function renderWatch(){
   const st=watchData&&watchData.state;
+  foot.textContent=L('🦞 Claw Watch · '+WATCH, true);
   const backBtn=`<button class="btn ghost sm" id="watchback" style="margin-top:4px">← Back to the app</button>`;
-  const wireBack=()=>{ const b=document.getElementById('watchback'); if(b) b.onclick=()=>{ location.href=location.pathname; }; };
+  const wireBack=()=>{ const b=document.getElementById('watchback'); if(b) b.onclick=()=>{ location.href='/'; }; };
   if(!st){
-    app.innerHTML=`<div class="card" style="text-align:center"><div class="burst">📺</div>
+    app.innerHTML=L(`<div class="card" style="text-align:center"><div class="burst">📺</div>
       <h2 style="font-size:20px">Waiting for the table…</h2>
       <p style="color:var(--muted);font-size:13px;line-height:1.5;margin:8px 0 0">Claw Watch <b style="color:#fff">${esc(WATCH||'')}</b> isn’t live yet.<br>This page updates by itself — leave it open.</p></div>
-      ${backBtn}`;
+      ${backBtn}`);
     wireBack();
     return;
   }
@@ -585,7 +889,7 @@ function renderWatch(){
     }
     turnHtml=`<div class="card" style="text-align:center;padding:14px 13px">
       <div style="color:var(--muted);font-size:13px;font-weight:700">🎲 ${esc(rp.name)} is rolling</div>
-      <div style="font-size:30px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums">${st.accrual>0?`<span style="color:var(--good)">+${st.accrual}</span> <span style="color:#8fa2c2;font-size:19px;font-weight:700">→</span> `:''}${would}</div>
+      <div style="font-size:30px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums">${st.accrual>0?`<span style="color:var(--success)">+${st.accrual}</span> <span style="color:#8fa2c2;font-size:19px;font-weight:700">→</span> `:''}${would}</div>
       <div style="color:var(--muted);font-size:12px;font-weight:700;margin-top:3px">${ctx}</div>
     </div>`;
   }
@@ -614,17 +918,17 @@ function renderWatch(){
         ${tr.map(t=>`<div class="logline"><span class="t">${esc(t.from)} → ${esc(t.to)}</span><span class="v b">$${money(t.amount)}</span></div>`).join('')}
         <div class="cb-hint">One payment each settles the whole night.</div></div>`;
     }
-    app.innerHTML=`${endHtml}
+    app.innerHTML=L(`${endHtml}
       <div class="hint">Game over — this page updates if another game starts. 🦞</div>
-      ${backBtn}`;
+      ${backBtn}`);
     wireBack();
     return;
   }
-  app.innerHTML=`${banner}
+  app.innerHTML=L(`${banner}
     <div class="card"><div class="label">🦞 Claw Watch ${esc(WATCH)} · ${stale?'idle':'LIVE'}<span style="font-weight:700;letter-spacing:0;text-transform:none;color:#8fa2c2">updated ${agoText}</span></div><div class="sb ${wdens}">${rows}</div></div>
     ${turnHtml}
     <div class="hint">Read-only live scoreboard — refreshes itself, no app needed. 🦞</div>
-    ${backBtn}`;
+    ${backBtn}`);
   wireBack();
 }
 
@@ -675,8 +979,8 @@ function renderSetup(){
   const live=d.names.filter(n=>n.trim());
   const canStart=live.length>=2;
   const stakeVal=d.customStake!==''?d.customStake:d.stake;
-  foot.textContent='v4.9.1 · app design by addison hoover';
-  app.innerHTML=`
+  foot.textContent=APP_VER+' · Game Mode · app design by addison hoover';
+  app.innerHTML=L(`
     <div class="card">
       <div class="label">Players <span style="color:#8fa2c2;font-weight:700;letter-spacing:0;text-transform:none">seat order around the table</span></div>
       <div id="players"></div>
@@ -691,6 +995,8 @@ function renderSetup(){
       <div style="margin-top:10px"><input type="number" id="custom" inputmode="decimal" min="0" step="0.25" placeholder="Custom $ per point" value="${d.customStake}"></div>
       <div class="hint">Winner collects <b>stake × point-gap</b> from each opponent. Anyone finishing on <b>0</b> pays <b>double</b>.</div>
     </div>
+    <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
+    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>
     <div class="card">
       <div class="toggle" id="liabTog">
         <div>Show live “what I’d owe” during play<br><span style="font-size:11px;color:#8fa2c2">optional · some tables find it stressful</span></div>
@@ -703,8 +1009,12 @@ function renderSetup(){
         <div class="sw ${d.noMath?'on':''}"><i></i></div>
       </div>
     </div>
-    <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
-    <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>`;
+    <div class="card">
+      <div class="toggle" id="gameModeTog">
+        <div>Game Mode<br><span style="font-size:11px;color:#8fa2c2">${SKIN.name} · tap to switch look</span></div>
+        <div class="gmd">${SKIN.symbol}</div>
+      </div>
+    </div>`);
 
   const pw=document.getElementById('players');
   pw.innerHTML=d.names.map((n,i)=>`
@@ -724,6 +1034,7 @@ function renderSetup(){
   document.getElementById('custom').oninput=e=>{ d.customStake=e.target.value; document.querySelectorAll('#stakes .chip').forEach(x=>x.classList.remove('on')); };
   document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
   document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
+  document.getElementById('gameModeTog').onclick=()=>{ if(S&&S.phase==='playing') return; modal={type:'gamemode',pick:SKIN.id}; render(); };
   document.getElementById('start').onclick=startGame;
 }
 
@@ -900,7 +1211,7 @@ function renderGame(){
   const canBank=pts>0&&!block;
   const adds=S.turnAdds&&S.turnAdds.length?S.turnAdds.join(' + '):'';
 
-  app.innerHTML=`
+  app.innerHTML=L(`
     ${banner}
     <div class="card">
       <div class="label">Scores${eg?' · 🏁 last licks':''}<button class="lk" id="editOrder">${S.editOrder?'✓ Done':'⇅ Reorder'}</button></div>
@@ -919,7 +1230,7 @@ function renderGame(){
       </div>
       <div class="msg ${msgClass}">${msg|| (gateActive(p)?`Tap each roll as it lands (bank once the turn hits ${GATE}+).`:'Tap each roll as it lands, then Bank.')}</div>
 
-      ${S.noMath?`<div class="nmwrap">${[0,1].map(col=>`<div>
+      ${S.noMath?`<div class="nmwrap">${[0,1].map(col=>`<div class="nmdie">
         <div class="nmlab">die ${col+1}</div>
         <div class="nmcol">${[1,2,3,4,5,6].map(f=>`<button class="rc ${nmFaces[col]===f?'on':''}" data-nm-col="${col}" data-nm-face="${f}">${f===1?'🦞':f}</button>`).join('')}</div>
       </div>`).join('')}</div>`:`<div class="rollchips">
@@ -937,7 +1248,7 @@ function renderGame(){
     </div>
 
     ${liabHtml}
-    <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`;
+    <button class="btn dark sm" id="menu" style="margin-top:2px">🏁 &nbsp;End game · new game&nbsp; 🏁</button>`);
 
   // scoreboard interactions
   document.querySelectorAll('[data-sel]').forEach(el=>{ if(el.dataset.sel!=='') el.onclick=ev=>{ if(ev.target.closest('[data-log]'))return; if(+el.dataset.sel===S.cur) return; snapshot(); S.cur=+el.dataset.sel; S.accrual=0; S.turnAdds=[]; flash(`${S.players[S.cur].name} is up.`,''); entryPts=''; resetNm(); save(); render(); }; });
@@ -969,10 +1280,28 @@ function renderModal(){
   const old=document.querySelector('.ov'); if(old) old.remove();
   const ov=document.createElement('div'); ov.className='ov';
   let html='';
-  if(modal.type==='menu'){
+  if(modal.type==='gamemode'){
+    const pick=modal.pick||SKIN.id;
+    const rows=Object.values(SKINS).map(s=>`<button class="skinrow ${s.id===pick?'on':''}" data-skin="${s.id}">
+        <span class="sym">${s.symbol}</span><span>${s.name}</span>
+        <span class="chk">${s.id===pick?'✓':''}</span></button>`).join('');
+    html=`<div class="modal"><h2>Game Mode</h2>
+      <p>Pick the table’s look. Scoring and Jackson Mode stay the same.</p>
+      ${rows}
+      <div class="spacer"></div>
+      <button class="btn" id="m_gok">Use this look</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="m_close">Cancel</button></div>`;
+  } else if(modal.type==='menu'){
     html=`<div class="modal"><h2>Menu</h2><p>End now and settle up, or scrap this game and start over.</p>
       <button class="btn gold" id="m_finish">🏁 End game now &amp; tally</button><div class="spacer"></div>
       <button class="btn ghost" id="m_new">Start a new game</button><div class="spacer"></div>
+      <button class="btn ghost" id="m_close">Cancel</button></div>`;
+  } else if(modal.type==='scrapconfirm'){
+    html=`<div class="modal"><h2>Start over?</h2>
+      <p>Scrap this game and return to setup. Previous games stay in the trophy.</p>
+      <button class="btn" id="m_scrap">Yes, scrap &amp; start over</button>
+      <div class="spacer"></div>
       <button class="btn ghost" id="m_close">Cancel</button></div>`;
   } else if(modal.type==='log'){
     const pl=S.players[modal.i];
@@ -1083,12 +1412,15 @@ function renderModal(){
       <button class="btn ghost" id="m_back">← All games</button><div class="spacer"></div>
       <button class="btn ghost" id="m_close">Close</button></div>`;
   }
-  ov.innerHTML=html;
+  ov.innerHTML=modal.type==='gamemode'?html:L(html);
   document.querySelector('.wrap').appendChild(ov);
-  ov.addEventListener('click',e=>{ if(e.target===ov){ modal=null; render(); } });
+  let ignoreBackdrop=true; setTimeout(()=>{ ignoreBackdrop=false; }, 350);
+  ov.addEventListener('click',e=>{ if(ignoreBackdrop) return; if(e.target===ov){ modal=null; render(); } });
   const mEl=ov.querySelector('.modal');
   if(mEl){ mEl.insertAdjacentHTML('afterbegin','<button class="mx" aria-label="Close">✕</button>'); mEl.querySelector('.mx').onclick=()=>{ modal=null; render(); }; }
   const close=document.getElementById('m_close'); if(close) close.onclick=()=>{ modal=null; render(); };
+  ov.querySelectorAll('[data-skin]').forEach(b=>b.onclick=()=>{ modal={type:'gamemode',pick:b.dataset.skin}; render(); });
+  const gok=document.getElementById('m_gok'); if(gok) gok.onclick=()=>acceptGameMode(modal.pick||SKIN.id);
   const back=document.getElementById('m_back'); if(back) back.onclick=()=>{ modal={type:'history'}; render(); };
   ov.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{ modal={type:'histgame',idx:+b.dataset.h}; render(); });
 
@@ -1102,7 +1434,7 @@ function renderModal(){
       if(m) m.textContent='Checking…';
       if(!(await codeExists(code))){ if(m) m.textContent='Code not found — double-check it with the scorekeeper.'; return; }
     }
-    location.href=location.pathname+'?watch='+encodeURIComponent(code);
+    location.href='/?watch='+encodeURIComponent(code);
   };
   const cj=document.getElementById('m_crewjoin');
   if(cj) cj.onclick=doJoin;
@@ -1111,24 +1443,25 @@ function renderModal(){
 
   const sa=document.getElementById('m_shareapp');
   if(sa) sa.onclick=async()=>{
-    const url=location.origin+location.pathname;
-    const text='Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:';
-    if(navigator.share){ try{ await navigator.share({title:'Lobster Dice',text,url}); }catch(e){} }
+    const url=location.origin+'/';
+    const text=L('Lobster Dice 🦞🎲 — the scorepad + stakes tracker for our game. Open it, then tap Share → Add to Home Screen:', true);
+    if(navigator.share){ try{ await navigator.share({title:L('Lobster Dice'),text,url}); }catch(e){} }
     else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(url); alert('App link copied — text it to the table:\n'+url); }catch(e){ alert('App link:\n'+url); } }
     else alert('App link:\n'+url);
   };
   const cb2=document.getElementById('m_codebox');
   if(cb2){ const shareCode=async()=>{ const c2=crew(); if(!c2) return;
-      const url=location.origin+location.pathname+'?watch='+encodeURIComponent(c2.code);
-      const text=`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`;
-      if(navigator.share){ try{ await navigator.share({title:'Lobster Dice — Claw Watch',text,url}); }catch(e){} }
+      const url=location.origin+'/?watch='+encodeURIComponent(c2.code);
+      const text=L(`Our Lobster Dice Claw Watch code is ${c2.code} — tap to watch live, or type it into the app:`, true);
+      if(navigator.share){ try{ await navigator.share({title:L('Lobster Dice — Claw Watch'),text,url}); }catch(e){} }
       else if(navigator.clipboard){ try{ await navigator.clipboard.writeText(text+' '+url); alert('Copied — text it to the table.'); }catch(e){ alert(text+' '+url); } }
       else alert(text+' '+url); };
     cb2.onclick=shareCode;
     cb2.onkeydown=e=>{ if(e.key==='Enter') shareCode(); }; }
 
   const f=document.getElementById('m_finish'); if(f) f.onclick=()=>{ modal=null; finalize(); };
-  const nw=document.getElementById('m_new'); if(nw) nw.onclick=()=>{ if(confirm('Scrap this game and start over?')){ wipe(); S=null; modal=null; newSetup(); render(); } };
+  const nw=document.getElementById('m_new'); if(nw) nw.onclick=e=>{ e.preventDefault(); e.stopPropagation(); modal={type:'scrapconfirm'}; render(); };
+  const sc=document.getElementById('m_scrap'); if(sc) sc.onclick=e=>{ e.preventDefault(); e.stopPropagation(); wipe(); S=null; modal=null; newSetup(); render(); };
 }
 
 /* ============================ RENDER: END ============================ */
@@ -1176,7 +1509,7 @@ function renderEnd(){
     </div>`;
   }
 
-  app.innerHTML=`
+  app.innerHTML=L(`
     <div class="card" style="text-align:center"><div class="burst" style="font-size:52px">🏆</div>
       <h2 style="font-size:24px">${tie?'It’s a tie!':esc(winner.name)+' wins!'}</h2>
       <p style="color:var(--muted);margin:6px 0 0">${tie?`${winTotal} apiece`:`${winTotal} points · won by ${margin}`}</p></div>
@@ -1190,7 +1523,7 @@ function renderEnd(){
       <div class="stat"><div class="v">${dubs}</div><div class="k">🦞🦞 double lobsters</div></div>
       <div class="stat"><div class="v">${big.v}</div><div class="k">biggest turn · ${esc(big.who)}</div></div>
       <div class="stat"><div class="v">${N()}</div><div class="k">players</div></div></div></div>
-    <button class="btn" id="again">🎲 New game</button>`;
+    <button class="btn" id="again">🎲 New game</button>`);
   document.getElementById('again').onclick=()=>{ wipe(); S=null; newSetup(); render(); };
   const rs=document.getElementById('resetSeries');
   if(rs) rs.onclick=()=>{ if(confirm('Reset the series tab to $0 for everyone?')){ try{ localStorage.removeItem(SSTORE); }catch(e){} render(); } };
@@ -1212,15 +1545,23 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
 
 /* ============================ BOOT ============================ */
 (function(){
-  const sp=document.getElementById('splash');
-  setTimeout(()=>{ sp.classList.add('out'); setTimeout(()=>sp.remove(),380); },1900);
+  const sp0=document.getElementById('splash');
+  splashHTML=sp0?sp0.outerHTML:'';
+  bootSkin();
+  splashTimer=setTimeout(()=>dismissSplash(),1900);
   if(WATCH){ startWatch(); return; }
   const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
   keepAwake();   // resume screen lock protection if a game was in progress
   trySync();   // push any games that finished offline
   ensureCrew();   // every player owns an always-on Claw Watch code
-  if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+  if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{})); }
 })();
+window.SKIN=SKIN;
+window.SKINS=SKINS;
+window.setSkin=setSkin;
+window.acceptGameMode=acceptGameMode;
+window.playSplash=playSplash;
+window.L=L;
 </script>
 </body>
 </html>

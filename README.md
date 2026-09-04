@@ -4,6 +4,8 @@
 
 **Scorepad + stakes tracker** for the dice game Lobster Dice — replaces pen, paper, and mental math. Enter names, tap each roll as it lands, and the app enforces every rule, tracks the money, and settles the series.
 
+**Game Mode** (setup screen only) switches the table’s look — Lobster Dice or Crimson Dice — without changing scoring, Jackson Mode, Watch codes, or history. QR and `/` always open Lobster first; a watcher phone mirrors the host’s current look.
+
 **Live app:** https://lobster-dice.vercel.app · app design by addison hoover
 
 ## The game in one paragraph
@@ -21,7 +23,7 @@ Optional **crew sync** adds a Supabase backend (`supabase/*.sql`): finished game
 ```bash
 npm install        # test dependencies only (jsdom)
 npm run serve      # local server at http://localhost:8321
-npm test           # 8 suites, drives the real DOM headlessly via jsdom
+npm test           # 9 suites, drives the real DOM headlessly via jsdom
 npm run deploy     # ship to production (Vercel)
 ```
 
@@ -39,6 +41,7 @@ npm run deploy     # ship to production (Vercel)
 | `tests/synctest.mjs` | crew sync: outbox queueing, upload, shared history merge |
 | `tests/watchtest.mjs` | live watch mode: broadcast state, watcher rendering, endgame dismount |
 | `tests/nomath.mjs` | No Math Mode: setup toggle, two-face picker, doubles lock, lobster paths |
+| `tests/gamemode.mjs` | Game Mode picker, Crimson skin, splash replay, persist, Watch mirror, QR lobster-first |
 
 ## License
 

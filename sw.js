@@ -1,12 +1,28 @@
 /* Lobster Dice service worker — offline app shell (cache-first) */
-const CACHE = 'lobster-dice-v8';
+const CACHE = 'lobster-dice-v27';
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
   './apple-touch-icon.png',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './crimson/manifest.webmanifest',
+  './crimson/elephant-white.png',
+  './crimson/elephant-white.svg',
+  './crimson/elephant-splash.png',
+  './crimson/elephant-crimson.svg',
+  './crimson/icon-192.png',
+  './crimson/icon-512.png',
+  './renegade/manifest.webmanifest',
+  './renegade/splash-head.png',
+  './renegade/pip.svg',
+  './renegade/pip.png',
+  './renegade/header-mark.svg',
+  './renegade/header-mark.png',
+  './renegade/icon-192.png',
+  './renegade/icon-512.png',
+  './renegade/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
