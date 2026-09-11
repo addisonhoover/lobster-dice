@@ -141,6 +141,154 @@ function startTwo(window, { mulligans = false, noMath = false } = {}) {
   ok('Jackson mulligan clears the pair', q(document, '.accrual .big').textContent.startsWith('0') && q(document, '#mulligan').disabled === true);
 }
 
+// --- post-wipe window: previous player can still burn theirs before the next log ---
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  chip(window, 8);
+  click(window, q(document, '#lob1'));
+  ok('after Addison lobster, Kelsey is up', q(document, '.who') && q(document, '.who').textContent.includes('Kelsey'));
+  ok('wipe window keeps USE MULLIGAN lit for Addison', q(document, '#mulligan') && q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Addison');
+  ok('button names Addison while Kelsey is current', q(document, '#mulligan').textContent.includes('Addison'));
+  const saved = JSON.parse(window.localStorage.getItem('lobsterDice.v2') || '{}');
+  ok('pending window persisted on live game', !!(saved.pendingMulligan && saved.pendingMulliganSnap) && saved.players[0].mulliganUsed === false);
+  click(window, q(document, '#mulligan'));
+  ok('mulligan after wipe returns Addison', q(document, '.who') && q(document, '.who').textContent.includes('Addison'));
+  ok('wipe is undone and accrual restored', q(document, '.accrual .big').textContent.startsWith('8') && !q(document, '.msg').textContent.includes('Lobster'));
+  ok('Addison spent; Kelsey still has hers', (() => {
+    const s = JSON.parse(window.localStorage.getItem('lobsterDice.v2') || '{}');
+    return s.players[0].mulliganUsed === true && s.players[1].mulliganUsed === false && !s.pendingMulligan;
+  })());
+  ok('mid-turn after restore is gray (already spent)', q(document, '#mulligan').disabled === true);
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  click(window, q(document, '#lob2'));
+  ok('double-lobster wipe also opens Addison window', q(document, '.who').textContent.includes('Kelsey') && q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Addison');
+  click(window, q(document, '#mulligan'));
+  ok('double-lobster mulligan restores Addison on 0', q(document, '.who').textContent.includes('Addison') && q(document, '.accrual .big').textContent.startsWith('0'));
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  chip(window, 11); chip(window, 11);
+  click(window, q(document, '#bank'));
+  ok('bank also leaves Addison window lit', q(document, '.who').textContent.includes('Kelsey') && q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Addison');
+  click(window, q(document, '#mulligan'));
+  ok('bank mulligan un-banks and returns Addison', q(document, '.who').textContent.includes('Addison') && q(document, '.accrual .big').textContent.startsWith('22'));
+  const s = JSON.parse(window.localStorage.getItem('lobsterDice.v2') || '{}');
+  ok('Addison still on 0 after banking mulligan', s.players[0].banked === 0 && s.players[0].mulliganUsed === true);
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  click(window, q(document, '#lob1'));
+  chip(window, 5);
+  ok('Kelsey log closes Addison window; button is Kelsey’s', q(document, '.who').textContent.includes('Kelsey') && q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Kelsey' && !q(document, '#mulligan').textContent.includes('Addison'));
+  const s = JSON.parse(window.localStorage.getItem('lobsterDice.v2') || '{}');
+  ok('Addison still unused after Kelsey rolled', s.players[0].mulliganUsed === false && !s.pendingMulligan);
+  click(window, q(document, '#mulligan'));
+  ok('that tap spends Kelsey, not Addison', (() => {
+    const live = JSON.parse(window.localStorage.getItem('lobsterDice.v2') || '{}');
+    return live.players[0].mulliganUsed === false && live.players[1].mulliganUsed === true && q(document, '.accrual .big').textContent.startsWith('0');
+  })());
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  chip(window, 6);
+  click(window, q(document, '#mulligan'));
+  chip(window, 7);
+  click(window, q(document, '#lob1'));
+  ok('spent Addison does not keep the wipe window', q(document, '.who').textContent.includes('Kelsey') && q(document, '#mulligan').disabled === true && q(document, '#mulligan').getAttribute('data-owner') === '');
+  chip(window, 9);
+  ok('button then follows unused Kelsey', q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Kelsey');
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  click(window, q(document, '#lob1'));
+  click(window, q(document, '#undo'));
+  ok('Undo last after wipe restores Addison without spending', q(document, '.who').textContent.includes('Addison') && q(document, '#mulligan').disabled === true && window.pendingMulliganPlayer() === null);
+  chip(window, 6);
+  ok('undo did not burn Addison’s mulligan', q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Addison');
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  click(window, q(document, '#lob1'));
+  click(window, q(document, '#lob1'));
+  ok('only the latest wipe window stays open (Kelsey’s)', q(document, '.who').textContent.includes('Addison') && q(document, '#mulligan').getAttribute('data-owner') === 'Kelsey');
+  click(window, q(document, '#mulligan'));
+  ok('using it restores Kelsey, not Addison’s earlier wipe', q(document, '.who').textContent.includes('Kelsey') && (() => {
+    const s = JSON.parse(window.localStorage.getItem('lobsterDice.v2') || '{}');
+    return s.players[0].mulliganUsed === false && s.players[1].mulliganUsed === true && s.players[0].busts === 1;
+  })());
+}
+
+{
+  const first = load('http://localhost:8321/');
+  startTwo(first.window, { mulligans: true });
+  click(first.window, q(first.window.document, '#lob1'));
+  const stored = first.window.localStorage.getItem('lobsterDice.v2');
+  const { window } = load('http://localhost:8321/', w => { w.localStorage.setItem('lobsterDice.v2', stored); });
+  const { document } = window;
+  ok('refresh keeps Kelsey up with Addison window lit', q(document, '.who').textContent.includes('Kelsey') && q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Addison');
+  click(window, q(document, '#mulligan'));
+  ok('refresh then mulligan still returns Addison', q(document, '.who').textContent.includes('Addison') && q(document, '#mulligan').disabled === true);
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window, { mulligans: true, noMath: true });
+  face(window, 0, 1); face(window, 1, 4);
+  ok('Jackson lobster wipe opens Addison window', q(document, '.who').textContent.includes('Kelsey') && q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Addison');
+  click(window, q(document, '#mulligan'));
+  ok('Jackson wipe mulligan returns Addison', q(document, '.who').textContent.includes('Addison') && q(document, '.nmwrap'));
+}
+
+{
+  const { window } = load('http://localhost:8321/');
+  const { document } = window;
+  startTwo(window);
+  click(window, q(document, '#lob1'));
+  ok('Mulligans off: still no button after a wipe', !q(document, '#mulligan') && q(document, '.who').textContent.includes('Kelsey'));
+}
+
+{
+  const calls = [];
+  const { window } = load('http://localhost:8321/', w => {
+    w.localStorage.setItem('lobsterDice.crew', JSON.stringify({ code: 'CLAW' }));
+    w.fetch = async (url, opts = {}) => {
+      calls.push({ u: String(url), method: opts.method || 'GET', body: opts.body });
+      return { ok: true, status: 200, json: async () => [] };
+    };
+  });
+  const { document } = window;
+  startTwo(window, { mulligans: true });
+  click(window, q(document, '#lob1'));
+  await sleep(1400);
+  const livePosts = calls.filter(c => c.u.includes('/rest/v1/live') && c.method === 'POST');
+  ok('host broadcasts the pending wipe window', livePosts.length >= 1);
+  const last = JSON.parse(livePosts[livePosts.length - 1].body);
+  ok('Watch state names Addison as pending mulligan', last.state.pendingMulligan === 'Addison' && last.state.players[0].mulligan === true);
+}
+
 // --- rematch keeps the toggle ---
 {
   const { window } = load('http://localhost:8321/');
