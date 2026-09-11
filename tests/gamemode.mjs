@@ -43,7 +43,7 @@ ok('app chrome uses cream pip PNG not leaf SVG', html.includes("REN='renegade/pi
 ok('renegade splash die is white with garnet pip', /sp-d2-ren[\s\S]*?fill="#ffffff"[\s\S]*?pip-garnet\.png/.test(html));
 ok('app has renegade splash + header mark', html.includes('renegade/splash-head.png') && html.includes('renegade/header-mark.png'));
 ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole') && !html.toLowerCase().includes('florida state'));
-ok('SW cache matches production', sw.includes("lobster-dice-v27") && sw.includes('elephant-splash.png') &&
+ok('SW cache matches production', sw.includes("lobster-dice-v28") && sw.includes('elephant-splash.png') &&
   sw.includes('elephant-crimson.svg'));
 ok('Jackson die frames use .nmdie', html.includes('class="nmdie"') && html.includes('.nmdie{') &&
   html.includes('html.skin-crimson .nmdie') && html.includes('html.skin-renegade .nmdie'));
@@ -58,18 +58,19 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   const { window } = load('http://localhost:8321/');
   const { document } = window;
   ok('setup shows Jackson Mode', !!q(document, '#noMathTog') && q(document, '#noMathTog').textContent.includes('Jackson Mode'));
-  ok('setup shows Game Mode under Jackson', (() => {
+  ok('setup shows Mulligans then Game Mode under Jackson', (() => {
     const cards = [...document.querySelectorAll('.card')];
     const j = cards.findIndex(c => c.querySelector('#noMathTog'));
+    const m = cards.findIndex(c => c.querySelector('#mulliganTog'));
     const g = cards.findIndex(c => c.querySelector('#gameModeTog'));
-    return j >= 0 && g === j + 1;
+    return j >= 0 && m === j + 1 && g === m + 1;
   })());
   ok('default skin is lobster', window.SKIN && window.SKIN.id === 'lobster');
   ok('default title is Lobster Dice', document.title.includes('Lobster Dice') && !document.title.includes('Crimson'));
   ok('html is not crimson or renegade', !document.documentElement.classList.contains('skin-crimson') &&
     !document.documentElement.classList.contains('skin-renegade'));
   ok('header is lobster', q(document, '.top h1').textContent === 'Lobster Dice' && q(document, '.top .logo').textContent.includes('🦞'));
-  ok('footer notes Game Mode v4.11', document.getElementById('foot').textContent.includes('v4.11') && document.getElementById('foot').textContent.includes('Game Mode'));
+  ok('footer notes Game Mode v4.12', document.getElementById('foot').textContent.includes('v4.12') && document.getElementById('foot').textContent.includes('Game Mode'));
   ok('lobster splash still present', !!q(document, '#splash') && !!q(document, '.sp-title-lob') && q(document, '.sp-title-lob').textContent.includes('Lobster'));
   ok('setup has no Watch code card', !q(document, '#watchCard'));
   ok('Start game sits above the options', (() => {
