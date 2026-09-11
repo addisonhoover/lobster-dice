@@ -84,6 +84,8 @@
   .btn:disabled{opacity:.4;filter:grayscale(.4);box-shadow:none;cursor:not-allowed}
   .btn.ghost{background:var(--card2);border:1px solid var(--line);box-shadow:none;color:var(--ink)}
   .btn.sea{background:linear-gradient(180deg,#54e0d9,#28b3ab);box-shadow:0 8px 20px rgba(63,208,201,.3);color:#04201e}
+  .btn.mull{margin-top:10px;background:linear-gradient(180deg,var(--sea),color-mix(in srgb,var(--sea) 70%,#000));box-shadow:0 8px 18px color-mix(in srgb,var(--sea) 35%,transparent);color:#04201e}
+  html.skin-crimson .btn.mull,html.skin-renegade .btn.mull{color:#fff}
   .btn.gold{background:linear-gradient(180deg,#ffe08a,#f5b83f);color:#3a2600;box-shadow:0 8px 20px rgba(255,207,92,.3)}
   .btn.dark{background:var(--card2);border:1px solid var(--line);box-shadow:none}
   .btn.sm{padding:12px;font-size:14px;border-radius:12px}
@@ -494,7 +496,7 @@
 const GATE=21, NINE69=69, WIN=101, FIRE=75, STORE='lobsterDice.v2';
 const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survives crossing midnight)
 const STAKES=[0.01,0.05,0.10,0.25,1,5,10,100];
-const APP_VER='v4.11';
+const APP_VER='v4.12';
 const GMSTORE='lobsterDice.gameMode';
 const ELE='crimson/elephant-white.svg';
 const ELE_PIP='<img class="ele-pip" src="'+ELE+'" alt="">';
@@ -713,8 +715,9 @@ function pushLive(){
   liveTimer=setTimeout(async()=>{
     try{
       const state={ phase:S.phase, stake:S.stake, ts:Date.now(), cur:S.cur, accrual:S.accrual||0,
-        skin:SKIN.id,
-        players:S.players.map(p=>({name:p.name,banked:p.banked,busts:p.busts,dubs:p.dubs})),
+        skin:SKIN.id, mulligans:!!S.mulligans,
+        players:S.players.map(p=>({name:p.name,banked:p.banked,busts:p.busts,dubs:p.dubs,
+          mulligan:S.mulligans?!p.mulliganUsed:undefined})),
         endgame:S.endgame?{bestTotal:S.endgame.bestTotal,bestPlayer:S.endgame.bestPlayer,round:S.endgame.round,left:S.endgame.q.length}:null };
       await fetch(`${SUPA_URL}/rest/v1/live`,{method:'POST',headers:{...sbHeaders(),'Prefer':'resolution=merge-duplicates'},body:JSON.stringify({code:c.code,state,updated_at:new Date().toISOString()})});
     }catch(e){}
@@ -862,7 +865,7 @@ function renderWatch(){
   const rows=st.players.map((p,i)=>{
     const isLead=p.banked===lead&&lead>0, gap=lead-p.banked;
     return `<div class="p ${i===st.cur&&st.phase==='playing'?'active':''} ${p.banked===0?'zero':''} ${isLead?'lead-row':''}">
-      <div class="pn">${i===st.cur&&st.phase==='playing'?'<span class="dot"></span>':''}${esc(p.name)}${p.banked===0?` <span class="tag0">— on 0</span>${anyFire?'<span class="warn0">⚠️</span>':''}`:''}</div>
+      <div class="pn">${i===st.cur&&st.phase==='playing'?'<span class="dot"></span>':''}${esc(p.name)}${p.banked===0?` <span class="tag0">— on 0</span>${anyFire?'<span class="warn0">⚠️</span>':''}`:''}${st.mulligans&&p.mulligan===false?' <span class="tag0">mulligan used</span>':''}</div>
       <div class="gap">${isLead?'<span class="lead">LEAD</span>':(gap>0?`−${gap}`:'')}</div>
       <div class="score ${p.banked>=FIRE?'fire':''}">${p.banked>=FIRE?'<span class="fl">🔥</span>':''}${p.banked}</div></div>`;
   }).join('');
@@ -964,14 +967,37 @@ function settleNets(nets){
 function snapshot(){ history.push(JSON.stringify({S,entryPts})); if(history.length>60) history.shift(); }
 function undo(){ if(!history.length) return; const p=JSON.parse(history.pop()); S=p.S; entryPts=p.entryPts; resetNm(); flash('Undid last action.',''); render(); }
 function clearHistory(){ history=[]; }
+function lastActionWasRoll(){
+  if(!history.length || !(S.turnAdds||[]).length) return false;
+  try{
+    const prev=JSON.parse(history[history.length-1]);
+    const prevAdds=(prev.S&&prev.S.turnAdds)||[];
+    const cur=S.turnAdds||[];
+    return prev.S && prev.S.cur===S.cur && cur.length===prevAdds.length+1;
+  }catch(e){ return false; }
+}
+function canMulligan(){
+  return !!(S && S.mulligans && P() && !P().mulliganUsed && history.length && lastActionWasRoll());
+}
+function useMulligan(){
+  if(!canMulligan()) return;
+  const id=P().id;
+  const pre=JSON.parse(history[history.length-1]);
+  snapshot();
+  S=pre.S; entryPts=pre.entryPts; resetNm();
+  const p=S.players.find(x=>x.id===id);
+  if(p) p.mulliganUsed=true;
+  flash((p?p.name:'Player')+' used their mulligan.','warn');
+  save(); render();
+}
 
 /* ============================ SETUP ============================ */
 const LSETUP='lobsterDice.lastSetup';
 let draft=null;
 function newSetup(){
   let last=null; try{ const r=localStorage.getItem(LSETUP); last=r?JSON.parse(r):null; }catch(e){}
-  draft=last?{names:[...last.names],stake:last.stake,customStake:last.customStake||'',liability:!!last.liability,noMath:!!last.noMath,rematch:true}
-            :{names:['','','',''],stake:1,customStake:'',liability:false,noMath:false};
+  draft=last?{names:[...last.names],stake:last.stake,customStake:last.customStake||'',liability:!!last.liability,noMath:!!last.noMath,mulligans:!!last.mulligans,rematch:true}
+            :{names:['','','',''],stake:1,customStake:'',liability:false,noMath:false,mulligans:false};
 }
 
 function renderSetup(){
@@ -1010,6 +1036,12 @@ function renderSetup(){
       </div>
     </div>
     <div class="card">
+      <div class="toggle" id="mulliganTog">
+        <div>Mulligans<br><span style="font-size:11px;color:#8fa2c2">one do-over each · burns after you use it</span></div>
+        <div class="sw ${d.mulligans?'on':''}"><i></i></div>
+      </div>
+    </div>
+    <div class="card">
       <div class="toggle" id="gameModeTog">
         <div>Game Mode<br><span style="font-size:11px;color:#8fa2c2">${SKIN.name} · tap to switch look</span></div>
         <div class="gmd">${SKIN.symbol}</div>
@@ -1034,6 +1066,7 @@ function renderSetup(){
   document.getElementById('custom').oninput=e=>{ d.customStake=e.target.value; document.querySelectorAll('#stakes .chip').forEach(x=>x.classList.remove('on')); };
   document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
   document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
+  document.getElementById('mulliganTog').onclick=()=>{ d.mulligans=!d.mulligans; renderSetup(); };
   document.getElementById('gameModeTog').onclick=()=>{ if(S&&S.phase==='playing') return; modal={type:'gamemode',pick:SKIN.id}; render(); };
   document.getElementById('start').onclick=startGame;
 }
@@ -1042,9 +1075,9 @@ function startGame(){
   const d=draft;
   const names=d.names.map(n=>n.trim()).filter(Boolean);
   const stake=Number(d.customStake!==''?d.customStake:d.stake)||0;
-  try{ localStorage.setItem(LSETUP, JSON.stringify({names,stake:d.stake,customStake:d.customStake,liability:d.liability,noMath:!!d.noMath})); }catch(e){}
-  S={ phase:'playing', stake, liability:d.liability, noMath:!!d.noMath, editOrder:false,
-    players:names.map((n,i)=>({ id:'p'+i+'_'+(Date.now()%100000), name:n, banked:0, busts:0, dubs:0, biggest:0, log:[] })),
+  try{ localStorage.setItem(LSETUP, JSON.stringify({names,stake:d.stake,customStake:d.customStake,liability:d.liability,noMath:!!d.noMath,mulligans:!!d.mulligans})); }catch(e){}
+  S={ phase:'playing', stake, liability:d.liability, noMath:!!d.noMath, mulligans:!!d.mulligans, editOrder:false,
+    players:names.map((n,i)=>({ id:'p'+i+'_'+(Date.now()%100000), name:n, banked:0, busts:0, dubs:0, biggest:0, log:[], mulliganUsed:false })),
     cur:0, endgame:null, accrual:0, turnAdds:[], mustRoll:false };
   clearHistory(); entryPts=''; resetNm(); flash('','');
   save(); render();
@@ -1243,6 +1276,7 @@ function renderGame(){
         <button class="lob1" id="lob1">🦞 Lobster<small>lose this turn</small></button>
         <button class="lob2" id="lob2">🦞🦞 Double<small>banked → 0</small></button>
       </div>
+      ${S.mulligans?`<button class="btn sm mull" id="mulligan" ${canMulligan()?'':'disabled'}>USE MULLIGAN</button>`:''}
       <div class="spacer"></div>
       <button class="btn ghost sm" id="undo" ${history.length?'':'disabled'}>↶ Undo last</button>
     </div>
@@ -1262,6 +1296,7 @@ function renderGame(){
   document.getElementById('bank').onclick=doBank;
   document.getElementById('lob1').onclick=doLobster;
   document.getElementById('lob2').onclick=doDouble;
+  const mullBtn=document.getElementById('mulligan'); if(mullBtn) mullBtn.onclick=useMulligan;
   document.getElementById('undo').onclick=undo;
   document.getElementById('menu').onclick=()=>{ modal={type:'menu'}; render(); };
 }
@@ -1550,7 +1585,7 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
   bootSkin();
   splashTimer=setTimeout(()=>dismissSplash(),1900);
   if(WATCH){ startWatch(); return; }
-  const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; if(S.mustRoll===true) S.mustRoll=4; } render();
+  const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; S.mulligans=!!S.mulligans; S.players.forEach(p=>{ if(p.mulliganUsed==null) p.mulliganUsed=false; }); if(S.mustRoll===true) S.mustRoll=4; } render();
   keepAwake();   // resume screen lock protection if a game was in progress
   trySync();   // push any games that finished offline
   ensureCrew();   // every player owns an always-on Claw Watch code
@@ -1562,6 +1597,8 @@ window.setSkin=setSkin;
 window.acceptGameMode=acceptGameMode;
 window.playSplash=playSplash;
 window.L=L;
+window.canMulligan=canMulligan;
+window.useMulligan=useMulligan;
 </script>
 </body>
 </html>
