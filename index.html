@@ -496,7 +496,7 @@
 const GATE=21, NINE69=69, WIN=101, FIRE=75, STORE='lobsterDice.v2';
 const TONIGHT_MS=18*60*60*1000;   // a "game night" = the last 18 hours (survives crossing midnight)
 const STAKES=[0.01,0.05,0.10,0.25,1,5,10,100];
-const APP_VER='v4.12';
+const APP_VER='v4.13';
 const GMSTORE='lobsterDice.gameMode';
 const ELE='crimson/elephant-white.svg';
 const ELE_PIP='<img class="ele-pip" src="'+ELE+'" alt="">';
@@ -714,8 +714,10 @@ function pushLive(){
   clearTimeout(liveTimer);
   liveTimer=setTimeout(async()=>{
     try{
+      const pending=pendingMulliganPlayer();
       const state={ phase:S.phase, stake:S.stake, ts:Date.now(), cur:S.cur, accrual:S.accrual||0,
         skin:SKIN.id, mulligans:!!S.mulligans,
+        pendingMulligan:pending?pending.name:null,
         players:S.players.map(p=>({name:p.name,banked:p.banked,busts:p.busts,dubs:p.dubs,
           mulligan:S.mulligans?!p.mulliganUsed:undefined})),
         endgame:S.endgame?{bestTotal:S.endgame.bestTotal,bestPlayer:S.endgame.bestPlayer,round:S.endgame.round,left:S.endgame.q.length}:null };
@@ -976,15 +978,43 @@ function lastActionWasRoll(){
     return prev.S && prev.S.cur===S.cur && cur.length===prevAdds.length+1;
   }catch(e){ return false; }
 }
-function canMulligan(){
-  return !!(S && S.mulligans && P() && !P().mulliganUsed && history.length && lastActionWasRoll());
+function clearPendingMulligan(){
+  if(!S) return;
+  S.pendingMulligan=null;
+  S.pendingMulliganSnap=null;
 }
+function offerPendingMulligan(p){
+  if(S && S.mulligans && p && !p.mulliganUsed && history.length){
+    S.pendingMulligan=p.id;
+    S.pendingMulliganSnap=history[history.length-1];
+  } else {
+    clearPendingMulligan();
+  }
+}
+function pendingMulliganPlayer(){
+  if(!S || !S.mulligans || !S.pendingMulligan) return null;
+  const p=S.players.find(x=>x.id===S.pendingMulligan);
+  return (p && !p.mulliganUsed) ? p : null;
+}
+function mulliganOwner(){
+  const pending=pendingMulliganPlayer();
+  if(pending) return pending;
+  const p=P();
+  if(S && S.mulligans && p && !p.mulliganUsed && history.length && lastActionWasRoll()) return p;
+  return null;
+}
+function canMulligan(){ return !!mulliganOwner(); }
 function useMulligan(){
-  if(!canMulligan()) return;
-  const id=P().id;
-  const pre=JSON.parse(history[history.length-1]);
+  const owner=mulliganOwner();
+  if(!owner) return;
+  const id=owner.id;
+  const raw=pendingMulliganPlayer()?S.pendingMulliganSnap:history[history.length-1];
+  if(!raw) return;
+  let pre; try{ pre=JSON.parse(raw); }catch(e){ return; }
+  if(!pre || !pre.S) return;
   snapshot();
   S=pre.S; entryPts=pre.entryPts; resetNm();
+  clearPendingMulligan();
   const p=S.players.find(x=>x.id===id);
   if(p) p.mulliganUsed=true;
   flash((p?p.name:'Player')+' used their mulligan.','warn');
@@ -1078,7 +1108,7 @@ function startGame(){
   try{ localStorage.setItem(LSETUP, JSON.stringify({names,stake:d.stake,customStake:d.customStake,liability:d.liability,noMath:!!d.noMath,mulligans:!!d.mulligans})); }catch(e){}
   S={ phase:'playing', stake, liability:d.liability, noMath:!!d.noMath, mulligans:!!d.mulligans, editOrder:false,
     players:names.map((n,i)=>({ id:'p'+i+'_'+(Date.now()%100000), name:n, banked:0, busts:0, dubs:0, biggest:0, log:[], mulliganUsed:false })),
-    cur:0, endgame:null, accrual:0, turnAdds:[], mustRoll:false };
+    cur:0, endgame:null, accrual:0, turnAdds:[], mustRoll:false, pendingMulligan:null, pendingMulliganSnap:null };
   clearHistory(); entryPts=''; resetNm(); flash('','');
   save(); render();
   keepAwake();
@@ -1107,6 +1137,7 @@ function doAdd(v, knownDouble){
   resetNm();
   if(!(v>0)) return;
   snapshot();
+  clearPendingMulligan();
   S.accrual=(S.accrual||0)+v;
   S.turnAdds.push(v);
   S.mustRoll=(knownDouble||v===4||v===12)?v:false;   // 4/12 always doubles; No Math Mode can also see 3+3, 4+4, 5+5
@@ -1130,6 +1161,7 @@ function doBank(){
   const block=bankBlock(pts); if(block) return;
   resetNm();
   snapshot();
+  clearPendingMulligan();
   const p=P(), amt=S.accrual;
   p.banked+=amt; if(amt>p.biggest) p.biggest=amt;
   p.log.push({t:'bank',pts:amt,total:p.banked,adds:[...S.turnAdds]});
@@ -1139,6 +1171,7 @@ function doBank(){
 function doLobster(){
   resetNm();
   snapshot();
+  clearPendingMulligan();
   const p=P(); p.busts++; const lost=turnTotal();
   p.log.push({t:'lobster',lost});
   flash(lost>0?`🦞 Lobster — ${p.name} loses ${lost} this turn.`:`🦞 Lobster — ${p.name} loses the turn.`,'bad');
@@ -1147,6 +1180,7 @@ function doLobster(){
 function doDouble(){
   resetNm();
   snapshot();
+  clearPendingMulligan();
   const p=P(); p.dubs++; const had=p.banked; p.banked=0;
   p.log.push({t:'double',from:had});
   flash(`🦞🦞 Double lobster — ${p.name} wiped to 0!`,'bad');
@@ -1155,10 +1189,11 @@ function doDouble(){
 
 /* ============================ TURN ADVANCE + ENDGAME ============================ */
 function advance(wasBank){
+  const justFinished=P();
   S.accrual=0; S.turnAdds=[]; S.mustRoll=false;
-  const p=P();
+  offerPendingMulligan(justFinished);
   // trigger endgame the first time anyone banks to 101+
-  if(!S.endgame && wasBank && p.banked>=WIN){
+  if(!S.endgame && wasBank && justFinished.banked>=WIN){
     startEndgame();
     save(); render(); return;
   }
@@ -1196,7 +1231,7 @@ function endgameAdvance(){
   S.cur=eg.q[0];
 }
 
-function finalize(){ S.phase='ended'; modal=null; archiveGame(); save(); render(); releaseAwake(); }
+function finalize(){ S.phase='ended'; modal=null; clearPendingMulligan(); archiveGame(); save(); render(); releaseAwake(); }
 
 /* ============================ PAYOUTS ============================ */
 function payoutsFor(players,stake){
@@ -1276,7 +1311,7 @@ function renderGame(){
         <button class="lob1" id="lob1">🦞 Lobster<small>lose this turn</small></button>
         <button class="lob2" id="lob2">🦞🦞 Double<small>banked → 0</small></button>
       </div>
-      ${S.mulligans?`<button class="btn sm mull" id="mulligan" ${canMulligan()?'':'disabled'}>USE MULLIGAN</button>`:''}
+      ${S.mulligans?(()=>{ const owner=mulliganOwner(); const pending=pendingMulliganPlayer(); const label=pending&&P()&&pending.id!==P().id?`USE MULLIGAN · ${esc(pending.name)}`:'USE MULLIGAN'; return `<button class="btn sm mull" id="mulligan" data-owner="${owner?esc(owner.name):''}" ${owner?'':'disabled'}>${label}</button>`; })():''}
       <div class="spacer"></div>
       <button class="btn ghost sm" id="undo" ${history.length?'':'disabled'}>↶ Undo last</button>
     </div>
@@ -1585,7 +1620,7 @@ function money(n){ return (Math.round(n*100)/100).toLocaleString(undefined,{mini
   bootSkin();
   splashTimer=setTimeout(()=>dismissSplash(),1900);
   if(WATCH){ startWatch(); return; }
-  const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; S.mulligans=!!S.mulligans; S.players.forEach(p=>{ if(p.mulliganUsed==null) p.mulliganUsed=false; }); if(S.mustRoll===true) S.mustRoll=4; } render();
+  const s=load(); if(s&&s.players){ S=s; S.accrual=S.accrual||0; S.turnAdds=S.turnAdds||[]; S.mulligans=!!S.mulligans; if(!S.pendingMulligan) clearPendingMulligan(); S.players.forEach(p=>{ if(p.mulliganUsed==null) p.mulliganUsed=false; }); if(S.mustRoll===true) S.mustRoll=4; } render();
   keepAwake();   // resume screen lock protection if a game was in progress
   trySync();   // push any games that finished offline
   ensureCrew();   // every player owns an always-on Claw Watch code
@@ -1599,6 +1634,8 @@ window.playSplash=playSplash;
 window.L=L;
 window.canMulligan=canMulligan;
 window.useMulligan=useMulligan;
+window.mulliganOwner=mulliganOwner;
+window.pendingMulliganPlayer=pendingMulliganPlayer;
 </script>
 </body>
 </html>

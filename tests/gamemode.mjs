@@ -43,7 +43,7 @@ ok('app chrome uses cream pip PNG not leaf SVG', html.includes("REN='renegade/pi
 ok('renegade splash die is white with garnet pip', /sp-d2-ren[\s\S]*?fill="#ffffff"[\s\S]*?pip-garnet\.png/.test(html));
 ok('app has renegade splash + header mark', html.includes('renegade/splash-head.png') && html.includes('renegade/header-mark.png'));
 ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole') && !html.toLowerCase().includes('florida state'));
-ok('SW cache matches production', sw.includes("lobster-dice-v28") && sw.includes('elephant-splash.png') &&
+ok('SW cache matches production', sw.includes("lobster-dice-v29") && sw.includes('elephant-splash.png') &&
   sw.includes('elephant-crimson.svg'));
 ok('Jackson die frames use .nmdie', html.includes('class="nmdie"') && html.includes('.nmdie{') &&
   html.includes('html.skin-crimson .nmdie') && html.includes('html.skin-renegade .nmdie'));
