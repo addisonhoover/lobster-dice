@@ -221,9 +221,9 @@ function startTwo(window, { mulligans = false, noMath = false } = {}) {
   startTwo(window, { mulligans: true });
   click(window, q(document, '#lob1'));
   click(window, q(document, '#undo'));
-  ok('Undo last after wipe restores Addison without spending', q(document, '.who').textContent.includes('Addison') && q(document, '#mulligan').disabled === true);
-  const s = JSON.parse(window.localStorage.getItem('lobsterDice.v2') || '{}');
-  ok('undo did not burn Addison’s mulligan', s.players[0].mulliganUsed === false && !s.pendingMulligan);
+  ok('Undo last after wipe restores Addison without spending', q(document, '.who').textContent.includes('Addison') && q(document, '#mulligan').disabled === true && window.pendingMulliganPlayer() === null);
+  chip(window, 6);
+  ok('undo did not burn Addison’s mulligan', q(document, '#mulligan').disabled === false && q(document, '#mulligan').getAttribute('data-owner') === 'Addison');
 }
 
 {
