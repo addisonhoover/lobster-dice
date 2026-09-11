@@ -23,7 +23,7 @@ ok('splash auto-dismisses ~2s', !q('#splash'));
 
 // GAME 1: Addison 25, Kelsey busts on 0 -> zero-doubler $50
 type('#players input[data-i="0"]', 'Addison'); type('#players input[data-i="1"]', 'Kelsey');
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 chip(7); chip(9); chip(9); click(q('#bank'));
 click(q('#lob1'));
 click(q('#menu')); click(q('#m_finish'));
@@ -33,7 +33,7 @@ ok('no transfer list on game 1', ![...document.querySelectorAll('.label')].some(
 
 // GAME 2: rematch. Kelsey wins 30-25 -> nets: Addison +45, Kelsey -45
 click(q('#again'));
-click(q('#start'));                                   // prefilled crew
+click(q('#continue')); click(q('#start'));            // prefilled crew
 chip(7); chip(9); chip(9); click(q('#bank'));         // Addison 25
 chip(11); chip(11); chip(8); click(q('#bank'));       // Kelsey 30
 click(q('#menu')); click(q('#m_finish'));
@@ -46,7 +46,7 @@ ok('Kelsey → Addison $45', [...document.querySelectorAll('.logline')].some(l =
 // GAME 3: different crew -> series auto-resets
 click(q('#again'));
 type('#players input[data-i="0"]', 'Dave'); type('#players input[data-i="1"]', 'Ben');
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 chip(11); chip(11); click(q('#bank'));
 click(q('#menu')); click(q('#m_finish'));
 ok('new crew starts fresh series (game 1)', [...document.querySelectorAll('.label')].some(l => l.textContent.includes('Series — game 1')));

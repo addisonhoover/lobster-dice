@@ -28,6 +28,12 @@ const type = (window, sel, val) => {
   el.value = val;
   el.dispatchEvent(new window.Event('input', { bubbles: true }));
 };
+const startFromSetup = (window, { noMath = false } = {}) => {
+  const { document } = window;
+  click(window, q(document, '#continue'));
+  if (noMath) click(window, q(document, '#noMathTog'));
+  click(window, q(document, '#start'));
+};
 
 ok('elephant SVG is a white-fill vector', eleSvg.includes('fill="#ffffff"') && eleSvg.includes('<path') && !eleSvg.includes('elephant-white.png'));
 ok('crimson splash die elephant is recolored #9E1B32', eleCrimsonSvg.includes('fill="#9E1B32"') && !eleCrimsonSvg.includes('fill="#ffffff"') && eleCrimsonSvg.includes('<path'));
@@ -43,7 +49,7 @@ ok('app chrome uses cream pip PNG not leaf SVG', html.includes("REN='renegade/pi
 ok('renegade splash die is white with garnet pip', /sp-d2-ren[\s\S]*?fill="#ffffff"[\s\S]*?pip-garnet\.png/.test(html));
 ok('app has renegade splash + header mark', html.includes('renegade/splash-head.png') && html.includes('renegade/header-mark.png'));
 ok('copy never uses school trademarks', !html.toLowerCase().includes('seminole') && !html.toLowerCase().includes('florida state'));
-ok('SW cache matches production', sw.includes("lobster-dice-v29") && sw.includes('elephant-splash.png') &&
+ok('SW cache matches production', sw.includes("lobster-dice-v30") && sw.includes('elephant-splash.png') &&
   sw.includes('elephant-crimson.svg'));
 ok('Jackson die frames use .nmdie', html.includes('class="nmdie"') && html.includes('.nmdie{') &&
   html.includes('html.skin-crimson .nmdie') && html.includes('html.skin-renegade .nmdie'));
@@ -57,14 +63,8 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
 {
   const { window } = load('http://localhost:8321/');
   const { document } = window;
-  ok('setup shows Jackson Mode', !!q(document, '#noMathTog') && q(document, '#noMathTog').textContent.includes('Jackson Mode'));
-  ok('setup shows Mulligans then Game Mode under Jackson', (() => {
-    const cards = [...document.querySelectorAll('.card')];
-    const j = cards.findIndex(c => c.querySelector('#noMathTog'));
-    const m = cards.findIndex(c => c.querySelector('#mulliganTog'));
-    const g = cards.findIndex(c => c.querySelector('#gameModeTog'));
-    return j >= 0 && m === j + 1 && g === m + 1;
-  })());
+  ok('Game Mode stays on main setup', !!q(document, '#gameModeTog') && q(document, '#gameModeTog').textContent.includes('Game Mode'));
+  ok('owe / Jackson / Mulligans are not on main setup', !q(document, '#liabTog') && !q(document, '#noMathTog') && !q(document, '#mulliganTog'));
   ok('default skin is lobster', window.SKIN && window.SKIN.id === 'lobster');
   ok('default title is Lobster Dice', document.title.includes('Lobster Dice') && !document.title.includes('Crimson'));
   ok('html is not crimson or renegade', !document.documentElement.classList.contains('skin-crimson') &&
@@ -73,14 +73,29 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   ok('footer notes Game Mode v4.12', document.getElementById('foot').textContent.includes('v4.12') && document.getElementById('foot').textContent.includes('Game Mode'));
   ok('lobster splash still present', !!q(document, '#splash') && !!q(document, '.sp-title-lob') && q(document, '.sp-title-lob').textContent.includes('Lobster'));
   ok('setup has no Watch code card', !q(document, '#watchCard'));
-  ok('Start game sits above the options', (() => {
-    const start = q(document, '#start');
-    const liab = q(document, '#liabTog');
+  ok('Continue sits above Game Mode', (() => {
+    const cont = q(document, '#continue');
+    const mode = q(document, '#gameModeTog');
     const stakes = q(document, '#stakes');
-    return start && liab && stakes &&
-      !!(stakes.compareDocumentPosition(start) & window.Node.DOCUMENT_POSITION_FOLLOWING) &&
-      !!(start.compareDocumentPosition(liab) & window.Node.DOCUMENT_POSITION_FOLLOWING);
+    return cont && mode && stakes &&
+      !!(stakes.compareDocumentPosition(cont) & window.Node.DOCUMENT_POSITION_FOLLOWING) &&
+      !!(cont.compareDocumentPosition(mode) & window.Node.DOCUMENT_POSITION_FOLLOWING);
   })());
+  type(window, '#players input[data-i="0"]', 'Addison');
+  type(window, '#players input[data-i="1"]', 'Kelsey');
+  click(window, q(document, '#continue'));
+  ok('Continue opens GAME OPTIONS', !!q(document, '.modal') && q(document, '.modal h2').textContent.includes('GAME OPTIONS'));
+  ok('three option toggles live in the sheet', !!q(document, '#liabTog') &&
+    q(document, '#noMathTog') && q(document, '#noMathTog').textContent.includes('Jackson Mode') &&
+    q(document, '#mulliganTog') && q(document, '#mulliganTog').textContent.includes('Mulligans'));
+  ok('Game Mode is not inside the options sheet', !q(document, '.modal #gameModeTog') && !!q(document, '#gameModeTog'));
+  click(window, q(document, '#mulliganTog'));
+  ok('sheet toggle turns on', !!q(document, '#mulliganTog .sw.on'));
+  click(window, q(document, '#m_close'));
+  ok('Cancel returns to setup without starting', !!q(document, '#continue') && !q(document, '.rollchips') && !q(document, '#start'));
+  click(window, q(document, '#continue'));
+  ok('dismiss keeps the sheet edit', !!q(document, '#mulliganTog .sw.on'));
+  click(window, q(document, '#m_close'));
 }
 
 // --- picker lists both skins; same skin just closes ---
@@ -95,7 +110,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
     rows[1].dataset.skin === 'crimson' && rows[1].textContent.includes('Crimson Dice') && !!rows[1].querySelector('img.ele-pip') &&
     rows[2].dataset.skin === 'renegade' && rows[2].textContent.includes('Renegade Dice') && !!rows[2].querySelector('img.ren-pip'));
   click(window, q(document, '#m_gok'));
-  ok('same skin just closes', !q(document, '#m_gok') && !!q(document, '#start') && window.SKIN.id === 'lobster');
+  ok('same skin just closes', !q(document, '#m_gok') && !!q(document, '#continue') && window.SKIN.id === 'lobster');
 }
 
 // --- switch to Crimson replays splash, keeps names / history / watch code ---
@@ -132,7 +147,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   ok('splash replayed for crimson', !!q(document, '#splash') && !!q(document, '#eleArt') &&
     (q(document, '#eleArt').getAttribute('src') || '').includes('elephant-splash.png') &&
     q(document, '.sp-title-ele').textContent.includes('Crimson'));
-  ok('still on setup after switch', !!q(document, '#start') && !!q(document, '#gameModeTog'));
+  ok('still on setup after switch', !!q(document, '#continue') && !!q(document, '#gameModeTog'));
   ok('player names persisted', q(document, '#players input[data-i="0"]').value === 'Addison' &&
     q(document, '#players input[data-i="1"]').value === 'Kelsey');
   ok('history persisted', window.localStorage.getItem('lobsterDice.history') === histBefore);
@@ -164,7 +179,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   const { document } = window;
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
-  click(window, q(document, '#start'));
+  startFromSetup(window);
   ok('game started hides Game Mode', !!q(document, '.rollchips') && !q(document, '#gameModeTog'));
 }
 
@@ -183,7 +198,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   window.confirm = () => { confirmHits++; return true; };
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
-  click(window, q(document, '#start'));
+  startFromSetup(window);
   click(window, q(document, '#menu'));
   click(window, q(document, '#m_new'));
   ok('Start a new game opens scrapconfirm', !!q(document, '#m_scrap') && document.body.textContent.includes('Start over'));
@@ -195,7 +210,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   click(window, q(document, '#menu'));
   click(window, q(document, '#m_new'));
   click(window, q(document, '#m_scrap'));
-  ok('scrap returns to setup', !!q(document, '#start') && !!q(document, '#gameModeTog') && !q(document, '#watchCard'));
+  ok('scrap returns to setup', !!q(document, '#continue') && !!q(document, '#gameModeTog') && !q(document, '#watchCard'));
   ok('scrap did not call window.confirm', confirmHits === 0);
   const hist = JSON.parse(window.localStorage.getItem('lobsterDice.history') || '[]');
   ok('trophy history survived scrap', hist.length === 1 && hist[0].id === 'hist-scrap');
@@ -277,7 +292,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   const { document } = window;
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
-  click(window, q(document, '#start'));
+  startFromSetup(window);
   await sleep(1400);
   const livePosts = calls.filter(c => c.u.includes('/rest/v1/live') && c.method === 'POST');
   const last = livePosts.length ? JSON.parse(livePosts[livePosts.length - 1].body) : {};
@@ -292,8 +307,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   const { document } = window;
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
-  click(window, q(document, '#noMathTog'));
-  click(window, q(document, '#start'));
+  startFromSetup(window, { noMath: true });
   const face1 = q(document, '[data-nm-col="0"][data-nm-face="1"]');
   ok('crimson Jackson face 1 is elephant art', (() => {
     const img = face1 && face1.querySelector('img.ele-pip');
@@ -334,7 +348,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   ok('splash replayed for renegade', !!q(document, '#splash') && !!q(document, '#spearArt') &&
     (q(document, '#spearArt').getAttribute('src') || '').includes('renegade/splash-head.png') &&
     q(document, '.sp-title-ren').textContent.includes('Renegade'));
-  ok('still on setup after renegade switch', !!q(document, '#start') && !!q(document, '#gameModeTog') && !q(document, '#watchCard'));
+  ok('still on setup after renegade switch', !!q(document, '#continue') && !!q(document, '#gameModeTog') && !q(document, '#watchCard'));
   ok('renegade kept names', q(document, '#players input[data-i="0"]').value === 'Addison' &&
     q(document, '#players input[data-i="1"]').value === 'Kelsey');
   ok('renegade kept history', window.localStorage.getItem('lobsterDice.history') === histBefore);
@@ -397,8 +411,7 @@ ok('splash uses tall-phone fill', html.includes('min-height:100dvh') && html.inc
   const { document } = window;
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
-  click(window, q(document, '#noMathTog'));
-  click(window, q(document, '#start'));
+  startFromSetup(window, { noMath: true });
   const face1 = q(document, '[data-nm-col="0"][data-nm-face="1"]');
   ok('renegade Jackson face 1 is spear pip', (() => {
     const img = face1 && face1.querySelector('img.ren-pip');

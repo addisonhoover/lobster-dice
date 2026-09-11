@@ -13,11 +13,16 @@ const type = (sel, val) => { const el = q(sel); el.value = val; el.dispatchEvent
 const click = el => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 const face = (col, f) => click(q(`[data-nm-col="${col}"][data-nm-face="${f}"]`));
 
-ok('setup shows Jackson Mode toggle', !!q('#noMathTog') && q('#noMathTog').textContent.includes('Jackson Mode'));
-ok('Jackson Mode default off', !q('#noMathTog .sw.on'));
+ok('Game Mode stays on main setup', !!q('#gameModeTog') && q('#gameModeTog').textContent.includes('Game Mode'));
+ok('owe / Jackson / Mulligans are not on main setup', !q('#liabTog') && !q('#noMathTog') && !q('#mulliganTog'));
 
 type('#players input[data-i="0"]', 'Addison');
 type('#players input[data-i="1"]', 'Kelsey');
+click(q('#continue'));
+ok('Continue opens GAME OPTIONS', !!q('.modal') && q('.modal h2').textContent.includes('GAME OPTIONS'));
+ok('setup shows Jackson Mode toggle', !!q('#noMathTog') && q('#noMathTog').textContent.includes('Jackson Mode'));
+ok('Jackson Mode default off', !q('#noMathTog .sw.on'));
+ok('options sheet holds the three toggles', !!q('#liabTog') && !!q('#noMathTog') && !!q('#mulliganTog'));
 click(q('#start'));
 ok('off: still the adder keypad', !!q('.rollchips') && !q('.nmwrap'));
 ok('off: 6 does not lock (adder cannot see 3+3)', (() => {
@@ -31,7 +36,8 @@ click(q('#menu'));
 click(q('#m_new'));
 ok('scrap uses in-app confirm', !!q('#m_scrap') && document.body.textContent.includes('Start over'));
 click(q('#m_scrap'));
-ok('back at setup after scrap', !!q('#start') && !!q('#noMathTog'));
+ok('back at setup after scrap', !!q('#continue') && !!q('#gameModeTog') && !q('#noMathTog'));
+click(q('#continue'));
 ok('rematch remembered off', !q('#noMathTog .sw.on'));
 
 click(q('#noMathTog'));
@@ -79,6 +85,7 @@ ok('lobster + lobster uses double-lobster path', q('.msg').textContent.includes(
 click(q('#menu'));
 click(q('#m_finish'));
 click(q('#again'));
+click(q('#continue'));
 ok('rematch keeps Jackson Mode on', !!q('#noMathTog .sw.on'));
 const last = JSON.parse(window.localStorage.getItem('lobsterDice.lastSetup') || '{}');
 ok('setup persist includes noMath', last.noMath === true);

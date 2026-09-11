@@ -16,7 +16,7 @@ const chip = v => click(q(`[data-add="${v}"]`));
 ok('randomize button removed', !q('#rand'));
 type('#players input[data-i="0"]', 'Addison');
 type('#players input[data-i="1"]', 'Kelsey');
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 ok('game started', !!q('.rollchips'));
 ok('Other# input removed', !q('#pts') && !q('#addbtn'));
 ok('keypad is 3-col grid (9 chips)', document.querySelectorAll('.rc').length === 9);

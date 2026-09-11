@@ -28,23 +28,36 @@ function startTwo(window, { mulligans = false, noMath = false } = {}) {
   const { document } = window;
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
+  click(window, q(document, '#continue'));
   if (mulligans) click(window, q(document, '#mulliganTog'));
   if (noMath) click(window, q(document, '#noMathTog'));
   click(window, q(document, '#start'));
+}
+function openOptions(window) {
+  click(window, q(window.document, '#continue'));
 }
 
 // --- setup toggle: default off, hidden in play, persists ---
 {
   const { window } = load('http://localhost:8321/');
   const { document } = window;
+  ok('Game Mode stays on main setup', !!q(document, '#gameModeTog') && q(document, '#gameModeTog').textContent.includes('Game Mode'));
+  ok('owe / Jackson / Mulligans are not on main setup', !q(document, '#liabTog') && !q(document, '#noMathTog') && !q(document, '#mulliganTog'));
+  type(window, '#players input[data-i="0"]', 'Addison');
+  type(window, '#players input[data-i="1"]', 'Kelsey');
+  openOptions(window);
+  ok('Continue opens GAME OPTIONS', !!q(document, '.modal') && q(document, '.modal h2').textContent.includes('GAME OPTIONS'));
   ok('setup shows Mulligans toggle', !!q(document, '#mulliganTog') && q(document, '#mulliganTog').textContent.includes('Mulligans'));
   ok('Mulligans default off', !q(document, '#mulliganTog .sw.on'));
-  startTwo(window);
+  ok('options sheet holds the three toggles', !!q(document, '#liabTog') && !!q(document, '#noMathTog') && !!q(document, '#mulliganTog'));
+  click(window, q(document, '#start'));
   ok('off: no USE MULLIGAN button', !q(document, '#mulligan'));
   ok('off: undo still present', !!q(document, '#undo'));
   click(window, q(document, '#menu'));
   click(window, q(document, '#m_new'));
   click(window, q(document, '#m_scrap'));
+  ok('scrap returns to setup without options sheet', !!q(document, '#continue') && !q(document, '#mulliganTog'));
+  openOptions(window);
   ok('rematch remembered off', !q(document, '#mulliganTog .sw.on'));
 }
 
@@ -53,6 +66,7 @@ function startTwo(window, { mulligans = false, noMath = false } = {}) {
   const { document } = window;
   type(window, '#players input[data-i="0"]', 'Addison');
   type(window, '#players input[data-i="1"]', 'Kelsey');
+  openOptions(window);
   click(window, q(document, '#mulliganTog'));
   ok('toggle turns on', !!q(document, '#mulliganTog .sw.on'));
   click(window, q(document, '#start'));
@@ -297,6 +311,7 @@ function startTwo(window, { mulligans = false, noMath = false } = {}) {
   click(window, q(document, '#menu'));
   click(window, q(document, '#m_finish'));
   click(window, q(document, '#again'));
+  openOptions(window);
   ok('rematch keeps Mulligans on', !!q(document, '#mulliganTog .sw.on'));
 }
 

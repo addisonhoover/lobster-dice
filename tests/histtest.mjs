@@ -14,7 +14,7 @@ const click = el => el.dispatchEvent(new window.MouseEvent('click', { bubbles: t
 // --- setup & start a 2p game ---
 type('#players input[data-i="0"]', 'Addison');
 type('#players input[data-i="1"]', 'Kelsey');
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 ok('game started', !!q('.rollchips'));
 
 // --- Addison: 7+9+9 = 25, bank ---
@@ -52,12 +52,12 @@ click(q('#m_close'));
 
 // --- new game; history survives; rematch prefill ---
 click(q('#again'));
-ok('back at setup', !!q('#start'));
+ok('back at setup', !!q('#continue'));
 ok('rematch: names prefilled', q('#players input[data-i="0"]').value === 'Addison' && q('#players input[data-i="1"]').value === 'Kelsey');
 ok('rematch hint shown', document.querySelector('.hint').textContent.includes('Same crew'));
 type('#players input[data-i="0"]', 'Dave');
 type('#players input[data-i="1"]', 'Ben');
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 click(q('[data-add="11"]')); click(q('[data-add="11"]')); // 22, bankable
 click(q('#bank'));
 click(q('#menu')); click(q('#m_finish'));
