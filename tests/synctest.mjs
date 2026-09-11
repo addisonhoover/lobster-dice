@@ -77,7 +77,7 @@ ok('X closes the modal', !q('.modal'));
 
 // ---- play a game; it should upload automatically ----
 type('#players input[data-i="0"]', 'Addison'); type('#players input[data-i="1"]', 'Kelsey');
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 chip(11); chip(11); click(q('#bank'));
 click(q('#lob1'));
 click(q('#menu')); click(q('#m_finish'));

@@ -27,7 +27,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const click = el => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 
   type('#players input[data-i="0"]', 'Addison'); type('#players input[data-i="1"]', 'Kelsey');
-  click(q('#start'));
+  click(q('#continue')); click(q('#start'));
   click(q('[data-add="11"]')); click(q('[data-add="11"]'));
   click(q('#bank'));
   await sleep(1400);   // pushLive debounce is 1s

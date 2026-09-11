@@ -20,7 +20,7 @@ const banner = () => q('.banner') ? q('.banner').textContent : '';
 
 // 5 players around the circle
 ['A', 'B', 'C', 'D', 'E'].forEach((n, i) => { if (i > 3) click(q('#add')); type(`#players input[data-i="${i}"]`, n); });
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 
 // everyone banks 75 on their first turn (11x6+9)
 for (let i = 0; i < 5; i++) { chips(11, 11, 11, 11, 11, 11, 9); bank(); }

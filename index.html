@@ -178,6 +178,9 @@
   .liab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);padding:4px 2px;font-weight:700}
   .liab b{color:#ffb3ab}
   .toggle{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:var(--muted)}
+  .modal .optlist{margin:4px 0 8px}
+  .modal .optlist .toggle{padding:13px 0;border-bottom:1px solid var(--line);gap:14px;cursor:pointer}
+  .modal .optlist .toggle:last-child{border-bottom:none;padding-bottom:4px}
   .sw{width:46px;height:28px;border-radius:999px;background:var(--card2);border:1px solid var(--line);position:relative;transition:.2s;flex:0 0 46px}
   .sw.on{background:var(--sea)}
   .sw i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
@@ -1051,26 +1054,8 @@ function renderSetup(){
       <div style="margin-top:10px"><input type="number" id="custom" inputmode="decimal" min="0" step="0.25" placeholder="Custom $ per point" value="${d.customStake}"></div>
       <div class="hint">Winner collects <b>stake × point-gap</b> from each opponent. Anyone finishing on <b>0</b> pays <b>double</b>.</div>
     </div>
-    <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
+    <button class="btn" id="continue" ${canStart?'':'disabled'}>Continue →</button>
     <div class="hint">${canStart?`${live.length} players · $${fmtStake(Number(stakeVal)||0)}/pt`:'Enter at least 2 players'}</div>
-    <div class="card">
-      <div class="toggle" id="liabTog">
-        <div>Show live “what I’d owe” during play<br><span style="font-size:11px;color:#8fa2c2">optional · some tables find it stressful</span></div>
-        <div class="sw ${d.liability?'on':''}"><i></i></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="toggle" id="noMathTog">
-        <div>Jackson Mode<br><span style="font-size:11px;color:#8fa2c2">tap the two dice faces instead of adding</span></div>
-        <div class="sw ${d.noMath?'on':''}"><i></i></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="toggle" id="mulliganTog">
-        <div>Mulligans<br><span style="font-size:11px;color:#8fa2c2">one do-over each · burns after you use it</span></div>
-        <div class="sw ${d.mulligans?'on':''}"><i></i></div>
-      </div>
-    </div>
     <div class="card">
       <div class="toggle" id="gameModeTog">
         <div>Game Mode<br><span style="font-size:11px;color:#8fa2c2">${SKIN.name} · tap to switch look</span></div>
@@ -1087,25 +1072,37 @@ function renderSetup(){
       <button class="mv" data-dn="${i}" ${i===d.names.length-1?'disabled style=opacity:.3':''}>↓</button>
       ${d.names.length>2?`<button class="x" data-x="${i}">✕</button>`:''}
     </div>`).join('');
-  pw.querySelectorAll('input').forEach(inp=>inp.oninput=e=>{ d.names[+e.target.dataset.i]=e.target.value; document.getElementById('start').disabled=d.names.filter(x=>x.trim()).length<2; });
+  pw.querySelectorAll('input').forEach(inp=>inp.oninput=e=>{ d.names[+e.target.dataset.i]=e.target.value; document.getElementById('continue').disabled=d.names.filter(x=>x.trim()).length<2; });
   pw.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{ d.names.splice(+b.dataset.x,1); renderSetup(); });
   pw.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.up; if(i>0){ [d.names[i-1],d.names[i]]=[d.names[i],d.names[i-1]]; renderSetup(); } });
   pw.querySelectorAll('[data-dn]').forEach(b=>b.onclick=()=>{ const i=+b.dataset.dn; if(i<d.names.length-1){ [d.names[i+1],d.names[i]]=[d.names[i],d.names[i+1]]; renderSetup(); } });
   document.getElementById('add').onclick=()=>{ if(d.names.length<12){ d.names.push(''); renderSetup(); } };
   document.querySelectorAll('#stakes .chip').forEach(c=>c.onclick=()=>{ d.stake=Number(c.dataset.s); d.customStake=''; renderSetup(); });
   document.getElementById('custom').oninput=e=>{ d.customStake=e.target.value; document.querySelectorAll('#stakes .chip').forEach(x=>x.classList.remove('on')); };
-  document.getElementById('liabTog').onclick=()=>{ d.liability=!d.liability; renderSetup(); };
-  document.getElementById('noMathTog').onclick=()=>{ d.noMath=!d.noMath; renderSetup(); };
-  document.getElementById('mulliganTog').onclick=()=>{ d.mulligans=!d.mulligans; renderSetup(); };
   document.getElementById('gameModeTog').onclick=()=>{ if(S&&S.phase==='playing') return; modal={type:'gamemode',pick:SKIN.id}; render(); };
-  document.getElementById('start').onclick=startGame;
+  document.getElementById('continue').onclick=()=>{ if(d.names.filter(x=>x.trim()).length<2) return; modal={type:'gameoptions'}; render(); };
+}
+
+function persistLastSetup(fromStart){
+  const d=draft;
+  const live=d.names.map(n=>n.trim()).filter(Boolean);
+  let last=null; try{ const r=localStorage.getItem(LSETUP); last=r?JSON.parse(r):null; }catch(e){}
+  const names=fromStart?live:(live.length>=2?live:(last&&last.names)||d.names);
+  try{ localStorage.setItem(LSETUP, JSON.stringify({names,stake:d.stake,customStake:d.customStake,liability:!!d.liability,noMath:!!d.noMath,mulligans:!!d.mulligans})); }catch(e){}
+}
+function flipDraftToggle(key){
+  draft[key]=!draft[key];
+  persistLastSetup(false);
+  render();
 }
 
 function startGame(){
   const d=draft;
   const names=d.names.map(n=>n.trim()).filter(Boolean);
+  if(names.length<2) return;
   const stake=Number(d.customStake!==''?d.customStake:d.stake)||0;
-  try{ localStorage.setItem(LSETUP, JSON.stringify({names,stake:d.stake,customStake:d.customStake,liability:d.liability,noMath:!!d.noMath,mulligans:!!d.mulligans})); }catch(e){}
+  persistLastSetup(true);
+  modal=null;
   S={ phase:'playing', stake, liability:d.liability, noMath:!!d.noMath, mulligans:!!d.mulligans, editOrder:false,
     players:names.map((n,i)=>({ id:'p'+i+'_'+(Date.now()%100000), name:n, banked:0, busts:0, dubs:0, biggest:0, log:[], mulliganUsed:false })),
     cur:0, endgame:null, accrual:0, turnAdds:[], mustRoll:false, pendingMulligan:null, pendingMulliganSnap:null };
@@ -1362,6 +1359,29 @@ function renderModal(){
       <button class="btn" id="m_gok">Use this look</button>
       <div class="spacer"></div>
       <button class="btn ghost" id="m_close">Cancel</button></div>`;
+  } else if(modal.type==='gameoptions'){
+    const d=draft||{};
+    const canStart=(d.names||[]).filter(n=>String(n).trim()).length>=2;
+    html=`<div class="modal"><h2>GAME OPTIONS</h2>
+      <p>Optional table rules. Remembered for the next game.</p>
+      <div class="optlist">
+        <div class="toggle" id="liabTog">
+          <div>Show live “what I’d owe” during play<br><span style="font-size:11px;color:#8fa2c2">optional · some tables find it stressful</span></div>
+          <div class="sw ${d.liability?'on':''}"><i></i></div>
+        </div>
+        <div class="toggle" id="noMathTog">
+          <div>Jackson Mode<br><span style="font-size:11px;color:#8fa2c2">tap the two dice faces instead of adding</span></div>
+          <div class="sw ${d.noMath?'on':''}"><i></i></div>
+        </div>
+        <div class="toggle" id="mulliganTog">
+          <div>Mulligans<br><span style="font-size:11px;color:#8fa2c2">one do-over each · burns after you use it</span></div>
+          <div class="sw ${d.mulligans?'on':''}"><i></i></div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn" id="start" ${canStart?'':'disabled'}>Start game →</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="m_close">Cancel</button></div>`;
   } else if(modal.type==='menu'){
     html=`<div class="modal"><h2>Menu</h2><p>End now and settle up, or scrap this game and start over.</p>
       <button class="btn gold" id="m_finish">🏁 End game now &amp; tally</button><div class="spacer"></div>
@@ -1532,6 +1552,10 @@ function renderModal(){
   const f=document.getElementById('m_finish'); if(f) f.onclick=()=>{ modal=null; finalize(); };
   const nw=document.getElementById('m_new'); if(nw) nw.onclick=e=>{ e.preventDefault(); e.stopPropagation(); modal={type:'scrapconfirm'}; render(); };
   const sc=document.getElementById('m_scrap'); if(sc) sc.onclick=e=>{ e.preventDefault(); e.stopPropagation(); wipe(); S=null; modal=null; newSetup(); render(); };
+  const liab=document.getElementById('liabTog'); if(liab) liab.onclick=()=>flipDraftToggle('liability');
+  const nm=document.getElementById('noMathTog'); if(nm) nm.onclick=()=>flipDraftToggle('noMath');
+  const mull=document.getElementById('mulliganTog'); if(mull) mull.onclick=()=>flipDraftToggle('mulligans');
+  const st=document.getElementById('start'); if(st) st.onclick=startGame;
 }
 
 /* ============================ RENDER: END ============================ */

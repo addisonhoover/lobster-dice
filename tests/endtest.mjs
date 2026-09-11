@@ -14,7 +14,7 @@ const chip = v => click(q(`[data-add="${v}"]`));
 
 // 3 players
 type('#players input[data-i="0"]', 'A'); type('#players input[data-i="1"]', 'B'); type('#players input[data-i="2"]', 'C');
-click(q('#start'));
+click(q('#continue')); click(q('#start'));
 
 // A banks 105 -> becomes leader, endgame round 1, queue = B,C
 for (let i = 0; i < 9; i++) chip(11); chip(6);   // 105
